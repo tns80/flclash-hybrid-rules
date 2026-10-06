@@ -1,3 +1,4 @@
+import { guardProviderNames, rewriteProxyReferences } from "./proxy-names";
 import { CUSTOM_FILTER } from "./user-config";
 import { SETTINGS } from "./settings";
 import { buildRuleProviders } from "./rule-providers";
@@ -243,10 +244,10 @@ export function flclashMain(config: ClashConfig): ClashConfig {
   // 重名去冲突：内核在解析阶段遇到同名节点会直接报错，必须先处理。
   // 除此之外不改写 config.proxies —— 节点由内核按 include-all 在运行时
   // 纳入策略组，脚本无需（也不应该）枚举节点名。
-  makeProxyNamesUnique(originalProxies);
+  rewriteProxyReferences(config, makeProxyNamesUnique(originalProxies));
   if (originalProxies.length) config.proxies = originalProxies;
 
-  config["proxy-groups"] = buildMobileProxyGroups(hasProxySource(config));
+  config["proxy-groups"] = guardProviderNames(buildMobileProxyGroups(hasProxySource(config)));
 
   applyRuntime(config);
   applySniffer(config);

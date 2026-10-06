@@ -6,17 +6,25 @@ import type { ClashConfig } from "./types";
  * DNS 架构配置构建器
  * ------------------------------------------------------------------
  * 核心设计原则：防 DNS 泄露 + Smart 上游精确分流。
- * - respect-rules: true 确保境外 DNS 请求经代理通道出站，境外域名绝不落入国内解析商
- * - proxy-server-nameserver 采用国内加密 DoH，保证节点域名直连可解且不受污染
+ * - respect-rules: true 使 DNS 连接遵循路由规则，实际路径也受客户端/系统设置影响
+ * - proxy-server-nameserver 采用国内加密 DoH，独立解析节点域名
  * - direct-nameserver 采用系统 DNS + 国内 DoH，配合 follow-policy 处理直连域名
- * - nameserver-policy 精确分派国内外规则集，杜绝解析污染与解析回环
+ * - nameserver-policy 分派国内外规则集；不继承订阅的备用上游和节点解析 policy
  */
 
 export const applyDns = (cfg: ClashConfig): void => {
   const dns = cfg.dns || {};
-  const userFakeIpFilter: string[] = Array.isArray(dns["fake-ip-filter"])
+  // Only blacklist entries retain their meaning in Hybrid's blacklist mode.
+  const compatibleFilter = !dns["fake-ip-filter-mode"] || dns["fake-ip-filter-mode"] === "blacklist";
+  const userFakeIpFilter: string[] = compatibleFilter && Array.isArray(dns["fake-ip-filter"])
     ? dns["fake-ip-filter"]
     : [];
+
+  // Mihomo v1.19.32 RawDNS: other path fields are explicitly overwritten below.
+  // Preserve compatible TTL/cache/listener tuning, not a second resolver path.
+  const inheritedDns = { ...dns };
+  for (const key of ["fallback", "fallback-filter", "fallback-lazy-query", "proxy-server-nameserver-policy"])
+    delete inheritedDns[key];
 
   // Fake-IP 豁免黑名单：仅对局域网、国内服务、NTP 与特定系统连通性测试放行真实 IP
   const fakeIpFilter = uniq([
@@ -46,7 +54,7 @@ export const applyDns = (cfg: ClashConfig): void => {
   ]);
 
   cfg.dns = {
-    ...dns,
+    ...inheritedDns,
     enable: true,
     listen: "0.0.0.0:1053",
     ipv6: false, // 规避国内不稳定 IPv6 导致的 AAAA 查询超时与连接卡顿
@@ -64,13 +72,13 @@ export const applyDns = (cfg: ClashConfig): void => {
     "fake-ip-filter-mode": "blacklist",
     "fake-ip-filter": fakeIpFilter,
 
-    // Bootstrap DNS：用于解析 DoH 域名本身（系统 DNS 优先以兼容校园网认证阶段）
+    // Bootstrap DNS：用于解析 DoH 域名本身（包含系统 DNS 以兼容校园网认证阶段）
     "default-nameserver": ["system", ...DNS_SERVERS.BOOTSTRAP],
 
-    // 默认上游：国际加密 DoH（经代理出口出站，防 DNS 泄露核心）
+    // 默认上游：国际加密 DoH（连接遵循路由规则）
     nameserver: DNS_SERVERS.GLOBAL_DOH,
 
-    // 节点服务器域名解析器：直连可达且防污染的国内加密 DoH
+    // 节点服务器域名解析器：独立使用国内加密 DoH
     "proxy-server-nameserver": DNS_SERVERS.CN_DOH,
 
     // 直连出口专用解析器：直连流量优先使用国内解析，follow-policy 保留 policy 优先级
@@ -79,7 +87,7 @@ export const applyDns = (cfg: ClashConfig): void => {
 
     // 精确上游策略：按规则集指派最优 DNS（注意：多个 rule-set 共享键时只写一次 rule-set: 前缀）
     "nameserver-policy": {
-      // 私有网络与内网域名 → 系统 DNS 优先
+      // 私有网络与内网域名 → 系统 DNS 与国内 DoH
       "rule-set:private": ["system", ...DNS_SERVERS.CN_DOH],
 
       // 国内高频服务

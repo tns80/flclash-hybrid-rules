@@ -23,7 +23,7 @@ const FULL = {
   name: "__mihomoProxy",
   fileName: "mihomo-proxy.js",
   banner: `/**
- * mihomo-proxy — Ultimate Stable Edition v3.2 Hybrid
+ * mihomo-proxy — Ultimate Stable Edition v3.2.1 Hybrid
  * ------------------------------------------------------------------
  * 面向 Sparkle / 最新 Mihomo(Clash.Meta) 内核的配置增强脚本。
  * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
@@ -41,7 +41,7 @@ const SIMPLE = {
   name: "__mihomoSimple",
   fileName: "simple-mihomo.js",
   banner: `/**
- * simple-mihomo — 极简业务分流版 v3.2 Hybrid
+ * simple-mihomo — 极简业务分流版 v3.2.1 Hybrid
  * ------------------------------------------------------------------
  * mihomo-proxy.js 的极简姊妹版：保留全部业务分流与 DNS/TUN 优化，
  * 但策略组只有三个，节点不做地区分组，简洁好理解：
@@ -67,7 +67,7 @@ const BETTBOX = {
   fileName: "bettbox-flclash.js",
   banner: `const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 /**
- * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2 Hybrid
+ * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2.1 Hybrid
  * ------------------------------------------------------------------
  * 面向 Bettbox 与 FlClash 系列客户端的完整分流覆写脚本。
  * 集成 Compatible_With_Bettbox 可视化开关适配、include-all 运行时
@@ -79,7 +79,7 @@ const BETTBOX = {
  * ── Bettbox 可视化开关 ───────────────────────────────────────────
  * 本脚本首行的 Compatible_With_Bettbox 声明会被 Bettbox（v1.18.8+）
  * 自动识别，在客户端 UI 中渲染可视化配置面板，用户可直接通过开关
- * 控制各分流策略组和地区分组的启用/禁用。
+ * 控制各分流策略组和地区分组的启用/禁用；广告关闭时直接放行。
  *
  * ── 用法 ──────────────────────────────────────────────────────────
  * 设置 → 高级设置 → 脚本 → 添加 →（右上角可远程下载本脚本链接）→
@@ -138,7 +138,7 @@ const FLCLASH = {
   name: "__mihomoFlClash",
   fileName: "flclash-mobile.js",
   banner: `/**
- * flclash-mobile — FlClash（手机端）覆写脚本 v3.2 Hybrid
+ * flclash-mobile — FlClash（手机端）覆写脚本 v3.2.1 Hybrid
  * ------------------------------------------------------------------
  * 与 simple-mihomo 同样的三个策略组、同一套业务分流 / DNS 防泄露 /
  * Sniffer 源码，但节点改由内核 include-all + 正则过滤在运行时纳入：
@@ -155,9 +155,9 @@ const FLCLASH = {
  *
  * ── 必须在 App 内核对的设置（脚本无法覆盖，会被 App 强制改写）──────
  *  1. 设置 → 网络 →「覆写 DNS」保持【关闭】
- *     （打开会用 App 默认 DNS 整块替换本脚本的防泄露 DNS 架构）
+ *     （打开可能按客户端版本和所选字段覆盖脚本 DNS 配置）
  *  2. 设置 → 网络 →「追加系统 DNS」保持【关闭】
- *     （打开会向 nameserver 注入 system://，直接构成 DNS 泄露）
+ *     （打开会向 nameserver 注入 system://，增加系统解析路径）
  *  3. 出站模式选「规则」；TUN 栈选 mixed；
  *     「查找进程」建议设为 off（手机上无进程规则，开启徒增开销）
  *  4. 上述之外，log-level / ipv6 / 各端口 / tcp-concurrent /

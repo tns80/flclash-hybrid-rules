@@ -1,4 +1,5 @@
 import { normalizeName, sortProxyNames, uniq } from "./utils";
+import { isReservedProxyName } from "./proxy-names";
 import type {
   ClashConfig,
   CompiledRegion,
@@ -18,25 +19,31 @@ export const ensureConfigObject = (input: unknown): ClashConfig =>
 export const getOriginalProxies = (input: ClashConfig): Proxy[] =>
   Array.isArray(input.proxies) ? input.proxies : [];
 
-/** 节点重名去冲突：追加 _1/_2… 后缀 */
-export const makeProxyNamesUnique = (proxies: Proxy[] = []): void => {
+/** 节点/保留组名去冲突；返回原名到首个节点最终名的映射。 */
+export const makeProxyNamesUnique = (proxies: Proxy[] = []): Map<string, string> => {
   const used = new Set<string>();
+  const originalNames = new Set(proxies.filter((p) => p?.name).map((p) => String(p.name)));
+  const renamed = new Map<string, string>();
   const nextIdx = new Map<string, number>();
   proxies.forEach((p) => {
     if (!p || !p.name) return;
     const base = String(p.name);
-    if (!used.has(base)) {
+    if (!used.has(base) && !isReservedProxyName(base)) {
       used.add(base);
       nextIdx.set(base, 1);
+      if (!renamed.has(base)) renamed.set(base, base);
       return;
     }
     let idx = nextIdx.get(base) ?? 1;
     let candidate = `${base}_${idx}`;
-    while (used.has(candidate)) candidate = `${base}_${++idx}`;
+    while (used.has(candidate) || originalNames.has(candidate) || isReservedProxyName(candidate))
+      candidate = `${base}_${++idx}`;
     p.name = candidate;
     used.add(candidate);
     nextIdx.set(base, idx + 1);
+    if (!renamed.has(base)) renamed.set(base, candidate);
   });
+  return renamed;
 };
 
 /** 剔除自定义过滤器命中的节点 */

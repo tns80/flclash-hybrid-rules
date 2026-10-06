@@ -7,7 +7,7 @@ import vm from "node:vm";
 import yaml from "js-yaml";
 
 /** Probe the built Hybrid script using a live HTTP proxy-provider update.
- * TUN is disabled for this unprivileged probe; production TUN is checked by -t.
+ * TUN is disabled; -t checks configuration parsing, not production TUN traffic.
  * Inline rule fixtures isolate group membership from remote rules availability.
  */
 export async function verifyHybridRuntime(kernel, distDir) {

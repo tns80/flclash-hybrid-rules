@@ -1,3 +1,4 @@
+import { guardProviderNames, rewriteProxyReferences } from "./proxy-names";
 import { CUSTOM_FILTER } from "./user-config";
 import { SETTINGS } from "./settings";
 import { buildRuleProviders } from "./rule-providers";
@@ -126,75 +127,29 @@ interface RegionDef {
   icon: string;
 }
 
-/**
- * 地区定义与 filter 正则
- * 使用 (?i)(?:pattern1|pattern2) 语法统一包裹。
+/** ASCII letters delimit country/city tokens; digits and _ remain valid separators.
+ * Explicit ASCII boundaries avoid JS/regexp2 Unicode \b differences.
  */
+const regionFilter = (keywords: string[], codes: string[]): string => {
+  const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const literal = keywords.filter((word) => /[^A-Z ]/i.test(word)).map(escape);
+  const tokens = [...codes, ...keywords.filter((word) => /^[A-Z ]+$/i.test(word))].map(escape);
+  return "(?i)(?:" + [...literal, "(?<![A-Z])(?:" + tokens.join("|") + ")(?![A-Z])"].join("|") + ")";
+};
+
 const REGION_DEFS: RegionDef[] = [
-  {
-    name: "HK",
-    filter:
-      "(?i)(?:香港|HK|HKG|HONGKONG|HONG KONG|🇭🇰)",
-    icon: "Hong_Kong.png",
-  },
-  {
-    name: "TW",
-    filter:
-      "(?i)(?:台湾|台北|新北|TW|TWN|TAIWAN|TAIPEI|🇹🇼)",
-    icon: "Taiwan.png",
-  },
-  {
-    name: "JP",
-    filter:
-      "(?i)(?:日本|东京|大阪|JP|JPN|JAPAN|TOKYO|OSAKA|🇯🇵)",
-    icon: "Japan.png",
-  },
-  {
-    name: "SG",
-    filter:
-      "(?i)(?:新加坡|狮城|SG|SGP|SINGAPORE|🇸🇬)",
-    icon: "Singapore.png",
-  },
-  {
-    name: "KR",
-    filter:
-      "(?i)(?:韩国|首尔|KR|KOR|KOREA|SEOUL|🇰🇷)",
-    icon: "Korea.png",
-  },
-  {
-    name: "US",
-    filter:
-      "(?i)(?:美国|纽约|旧金山|洛杉矶|西雅图|芝加哥|US|USA|NEW YORK|SAN FRANCISCO|LOS ANGELES|SEATTLE|CHICAGO|🇺🇸)",
-    icon: "United_States.png",
-  },
-  {
-    name: "CA",
-    filter: "(?i)(?:加拿大|CANADA|TORONTO|VANCOUVER|MONTREAL|YYZ|YVR|🇨🇦)",
-    icon: "Canada.png",
-  },
-  {
-    name: "UK",
-    filter: "(?i)(?:英国|UNITED KINGDOM|ENGLAND|LONDON|MANCHESTER|\\bUK\\b|GBR|LHR|🇬🇧)",
-    icon: "United_Kingdom.png",
-  },
-  {
-    name: "EU",
-    filter:
-      "(?i)(?:欧洲|德国|法国|荷兰|俄罗斯|意大利|西班牙|瑞典|瑞士|波兰|芬兰|土耳其|爱尔兰|奥地利|法兰克福|(?<![A-Z])(?:EU|DE|FR|NL|RU|IT|ES|SE|CH|PL|FI|TR|IE|AT)(?![A-Z])|GERMANY|FRANCE|FRANKFURT|🇪🇺|🇩🇪|🇫🇷|🇳🇱|🇷🇺|🇮🇹|🇪🇸|🇸🇪|🇨🇭|🇵🇱|🇫🇮|🇹🇷|🇮🇪|🇦🇹|🇧🇪)",
-    icon: "European_Union.png",
-  },
-  {
-    name: "AU",
-    filter:
-      "(?i)(?:澳大利亚|澳洲|悉尼|墨尔本|AU|AUS|AUSTRALIA|SYDNEY|MELBOURNE|🇦🇺)",
-    icon: "Australia.png",
-  },
-  {
-    name: "AS",
-    filter:
-      "(?i)(?:越南|泰国|马来西亚|印尼|菲律宾|印度|VN|TH|MY|ID|PH|IN|VIETNAM|THAILAND|MALAYSIA|INDONESIA|PHILIPPINES|MANILA|🇻🇳|🇹🇭|🇲🇾|🇮🇩|🇵🇭|🇮🇳)",
-    icon: "Asia_Map.png",
-  },
+  { name: "HK", filter: regionFilter(["香港", "HONGKONG", "HONG KONG", "🇭🇰"], ["HK", "HKG"]), icon: "Hong_Kong.png" },
+  { name: "TW", filter: regionFilter(["台湾", "台北", "新北", "TAIWAN", "TAIPEI", "🇹🇼"], ["TW", "TWN"]), icon: "Taiwan.png" },
+  { name: "JP", filter: regionFilter(["日本", "东京", "大阪", "JAPAN", "TOKYO", "OSAKA", "🇯🇵"], ["JP", "JPN"]), icon: "Japan.png" },
+  { name: "SG", filter: regionFilter(["新加坡", "狮城", "SINGAPORE", "🇸🇬"], ["SG", "SGP"]), icon: "Singapore.png" },
+  { name: "KR", filter: regionFilter(["韩国", "首尔", "KOREA", "SEOUL", "🇰🇷"], ["KR", "KOR"]), icon: "Korea.png" },
+  { name: "US", filter: regionFilter(["美国", "纽约", "旧金山", "洛杉矶", "西雅图", "芝加哥", "NEW YORK", "SAN FRANCISCO", "LOS ANGELES", "SEATTLE", "CHICAGO", "🇺🇸"], ["US", "USA"]), icon: "United_States.png" },
+  // CA deliberately retains country/city/airport names; bare CA is not enabled.
+  { name: "CA", filter: regionFilter(["加拿大", "CANADA", "TORONTO", "VANCOUVER", "MONTREAL", "🇨🇦"], ["YYZ", "YVR"]), icon: "Canada.png" },
+  { name: "UK", filter: regionFilter(["英国", "UNITED KINGDOM", "ENGLAND", "LONDON", "MANCHESTER", "🇬🇧"], ["UK", "GB", "GBR", "LHR"]), icon: "United_Kingdom.png" },
+  { name: "EU", filter: regionFilter(["欧洲", "德国", "法国", "荷兰", "俄罗斯", "意大利", "西班牙", "瑞典", "瑞士", "波兰", "芬兰", "土耳其", "爱尔兰", "奥地利", "法兰克福", "GERMANY", "FRANCE", "FRANKFURT", "🇪🇺", "🇩🇪", "🇫🇷", "🇳🇱", "🇷🇺", "🇮🇹", "🇪🇸", "🇸🇪", "🇨🇭", "🇵🇱", "🇫🇮", "🇹🇷", "🇮🇪", "🇦🇹", "🇧🇪"], ["EU", "DE", "FR", "NL", "RU", "IT", "ES", "SE", "CH", "PL", "FI", "TR", "IE", "AT"]), icon: "European_Union.png" },
+  { name: "AU", filter: regionFilter(["澳大利亚", "澳洲", "悉尼", "墨尔本", "AUSTRALIA", "SYDNEY", "MELBOURNE", "🇦🇺"], ["AU", "AUS"]), icon: "Australia.png" },
+  { name: "AS", filter: regionFilter(["越南", "泰国", "马来西亚", "印尼", "菲律宾", "印度", "VIETNAM", "THAILAND", "MALAYSIA", "INDONESIA", "PHILIPPINES", "MANILA", "🇻🇳", "🇹🇭", "🇲🇾", "🇮🇩", "🇵🇭", "🇮🇳"], ["VN", "TH", "MY", "ID", "PH", "IN"]), icon: "Asia_Map.png" },
 ];
 
 /** Bettbox / FlClash Hybrid 地区展示顺序 */
@@ -272,10 +227,10 @@ const EMPTY_FALLBACK = { "empty-fallback": "DIRECT" };
 
 /**
  * 根据 BettboxRuleOptions 构建分流规则出口。
- * 当某个服务的开关为 false 时，该服务的流量平滑回退到 main 组。
+ * 业务服务关闭时回退 main；广告拦截关闭时直接放行（DIRECT）。
  */
 const buildRuleTargets = (options: BettboxRuleOptions): RuleTargets => ({
-  adblock: options.广告拦截 ? GROUPS.ADBLOCK : "REJECT",
+  adblock: options.广告拦截 ? GROUPS.ADBLOCK : "DIRECT",
   ai: options.AI ? GROUPS.AI : GROUPS.MAIN,
   google: options.Google ? GROUPS.GOOGLE : GROUPS.MAIN,
   youtube: options.YouTube ? GROUPS.YOUTUBE : GROUPS.MAIN,
@@ -690,13 +645,13 @@ export function bettboxMain(config: ClashConfig): ClashConfig {
   );
 
   // 重名去冲突：内核在解析阶段遇到同名节点会直接报错
-  makeProxyNamesUnique(originalProxies);
+  rewriteProxyReferences(config, makeProxyNamesUnique(originalProxies));
   if (originalProxies.length) config.proxies = originalProxies;
 
-  config["proxy-groups"] = buildBettboxProxyGroups(
+  config["proxy-groups"] = guardProviderNames(buildBettboxProxyGroups(
     hasProxySource(config),
     options,
-  );
+  ));
 
   applyRuntime(config);
   applySniffer(config);

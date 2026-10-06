@@ -192,6 +192,8 @@ try {
 try {
   const { verifyHybridRuntime } = await import("./verify-hybrid-runtime.mjs");
   await verifyHybridRuntime(kernel, distDir);
+  const { verifyHybridBoundaries } = await import("./verify-hybrid-boundaries.mjs");
+  await verifyHybridBoundaries(kernel, distDir);
 } catch (error) {
   console.error(`✗ Hybrid runtime: ${error.stack || error}`);
   failed = true;

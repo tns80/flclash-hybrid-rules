@@ -41,7 +41,7 @@ const googleQuicRule = (enabled: boolean = BLOCK_GOOGLE_QUIC): string[] =>
  * 完整版/Bettbox 版独立服务分组，极简版收敛至「全部/AI/广告拦截」三组。
  */
 export interface RuleTargets {
-  /** 广告拦截出口（REJECT 或「广告拦截」组） */
+  /** 广告出口（REJECT / DIRECT /「广告拦截」组） */
   adblock: string;
   ai: string;
   google: string;
@@ -148,23 +148,23 @@ export const mergeRules = (
   baseRules: string[] = [],
   extraRules: string[] = [],
 ): string[] => {
-  const extra = Array.isArray(extraRules) ? extraRules.filter(Boolean) : [];
-  if (!extra.length) return baseRules.slice();
-  const matchIndex = baseRules.findIndex((rule) =>
-    String(rule).trim().toUpperCase().startsWith("MATCH,"),
-  );
-  if (matchIndex === -1) return uniq([...baseRules, ...extra]);
+  const extra = Array.isArray(extraRules)
+    ? extraRules.filter((rule) => rule && !isMatchRule(rule))
+    : [];
+  const match = baseRules.find(isMatchRule);
   return uniq([
-    ...baseRules.slice(0, matchIndex),
+    ...baseRules.filter((rule) => !isMatchRule(rule)),
     ...extra,
-    ...baseRules.slice(matchIndex),
+    ...(match ? [match] : []),
   ]);
 };
+
+const isMatchRule = (rule: string): boolean => /^MATCH\s*,/i.test(String(rule).trim());
 
 /** 从用户既有规则中挑出 DIRECT 规则（供合并保留自定义直连） */
 export const pickDirectRules = (rules: string[] = []): string[] =>
   rules.filter((rule) => {
     const r = String(rule || "").trim();
-    if (!r || r.startsWith("#")) return false;
+    if (!r || r.startsWith("#") || isMatchRule(r)) return false;
     return /,DIRECT(?:,|$)/i.test(r);
   });

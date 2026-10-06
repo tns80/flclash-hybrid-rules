@@ -11,9 +11,9 @@ https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bet
 
 后续更新可使用 git fetch upstream，并在人工审查后合并 upstream/main。
 
-mihomo（Clash Meta）配置增强脚本 · v3.2 Hybrid
+mihomo（Clash Meta）配置增强脚本 · v3.2.1 Hybrid
 
-在 Sparkle / Clash Verge Rev（电脑）或 FlClash（手机）中作为**覆写脚本**加载，自动完成节点分组、服务级分流、DNS 防泄露分流与 TUN/Sniffer 网络优化。主要面向国内复杂网络（含校园网）与多地区机场订阅，目标是 Google 全家桶 / AI / 流媒体的高稳定性与零 DNS 泄露。
+在 Sparkle / Clash Verge Rev（电脑）或 FlClash（手机）中作为**覆写脚本**加载，自动完成节点分组、服务级分流、DNS 防泄露分流与 TUN/Sniffer 网络优化。主要面向国内复杂网络（含校园网）与多地区机场订阅，目标是改善 Google 全家桶 / AI / 流媒体的稳定性，并减少非预期 DNS 解析路径；脚本不能保证所有系统与 App 场景都没有 DNS 泄露。
 
 ---
 
@@ -84,27 +84,47 @@ https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bet
 生成的配置里不含成百上千行节点名，手机上加载更快。测速间隔放宽到 600s、
 容差 80ms，降低后台唤醒频率与移动网络抖动导致的频繁切换。
 
-Bettbox / FlClash v3.2 Hybrid（`bettbox-flclash.js`）：
+Bettbox / FlClash v3.2.1 Hybrid（`bettbox-flclash.js`）：
 
 兼具桌面完整版的丰富策略组与移动端的轻量动态架构：
 - **完整策略组体系**：`main`（主入口）/ `All` / `GLOBAL`，服务组为 `Google` / `YouTube` / `GitHub` / `Netflix` / `TikTok` / `AI`（排除香港）/ `Telegram` / `Steam` / `Apple` / `Microsoft` / `Spotify` / `广告拦截`
 - **地区自动分组**：HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS / `Other`（非地区节点），每组包含专属隐藏自动测速与手动选择
 - **节点动态纳入**：采用 `include-all: true` + 地区 `filter` 与通用 `exclude-filter`，订阅更新或节点变动无需重新应用脚本，全面兼容 `proxy-providers` 订阅
-- **Bettbox 可视化开关原生适配**：脚本首行声明 `const Compatible_With_Bettbox = { ruleOptionsEnable: true };`，在 Bettbox（v1.18.8+）客户端覆写面板中直接呈现可视化开关，用户无需改动代码即可一键启闭任意服务分流组或地区分组（关闭的服务流量自动平滑回流至 `main` 组）
+- **Bettbox 可视化开关原生适配**：脚本首行声明 `const Compatible_With_Bettbox = { ruleOptionsEnable: true };`，在 Bettbox（v1.18.8+）客户端覆写面板中直接呈现可视化开关，用户无需改动代码即可一键启闭任意服务分流组或地区分组（业务服务关闭后回流 `main`；广告拦截关闭后规则目标为 `DIRECT`，直接放行）
+
+### 节点保留名与动态 provider 限制
+
+四版共享 RESERVED_GROUP_NAMES，包含服务/地区/测速组、Telegram - Fallback、info、极简组名及内核内置目标。内联撞名节点改为唯一后缀名称，例如 UK → UK_1；若 UK_1 已存在则继续递增，并更新支持的 dialer-proxy / provider 下载引用。内置 DIRECT 等引用保持内置目标语义。
+
+Bettbox/FlClash 的 include-all filter 在节点应用 provider override 后，仅排除完整名称与脚本生成的策略组/保留名称相同的动态节点（不区分大小写），以避免 Mihomo duplicate name 导致整个配置无法加载。这不是包含关键词就过滤：保留名 UK 会排除 UK，但保留 UK_01、UK 01、Premium UK、UK-HOME；AI 同理不会误伤仅包含相同字母片段的普通节点名。过滤不枚举 provider 内容，也不误删显式测速组引用，HTTP/file/inline provider 的更新仍会动态生效。**限制：** 脚本不会自动重命名动态 provider 节点，被排除的撞名节点不能从这些动态池选择。如需使用该节点，请在机场订阅或 provider override 中将最终节点名称改为非保留名。此来源的状态为 SAFE DEGRADATION / KNOWN LIMITATION。
+
+地区短代码使用 ASCII 字母边界，不依赖 JS/regexp2 的 Unicode 词边界差异；空格、-、_、|、[]、()、数字均可分隔。CA 保持国家/城市/机场名识别，不新增裸 CA。混合多个国家标记的歧义节点名仍应由机场规范命名。
 
 ### 3. DNS 架构（防泄露 Smart 分流）
 
 - Fake-IP 黑名单模式，黑名单仅保留：private / cn / lan / stun / ntp / 非 Google 系统联网探测
 - `respect-rules: true`：DNS 出口遵循分流规则
 - 防泄露三级白名单（`nameserver-policy` 按序匹配）：
-  1. 内网/私有域名 → 系统 DNS 优先（兼容校园网内网）
+  1. 内网/私有域名 → 系统 DNS + 国内 DoH（兼容校园网内网）
   2. 需翻墙域名族（Google / YouTube / GitHub / Netflix / TikTok / AI / GFW / Telegram / Spotify）→ 国际 DoH
   3. 国内域名族（cn / apple-cn / google-cn / microsoft-cn / steam-cn）→ 国内 DoH（AliDNS / DNSPod）
-- **默认上游 = 国际 DoH（Cloudflare 1.1.1.1 + Quad9 9.9.9.9，IP 地址形式）且经代理出站**——
-  境外域名（含浏览器 TYPE65 查询）绝不落到国内解析商，这是防泄露核心
-- `proxy-server-nameserver` = 国内加密 DoH：直连状态必然可达且防污染，节点域名始终可解析
+- **默认上游 = 国际 DoH（Cloudflare 1.1.1.1 + Quad9 9.9.9.9，IP 地址形式），连接遵循路由规则**——
+  已列入国际 policy 的服务使用该上游；实际出站还受策略组选择、客户端后处理和系统网络设置影响
+- `proxy-server-nameserver` = 国内加密 DoH：独立解析节点域名；可达性仍取决于网络与上游服务
 - `ipv6: false`：关闭 AAAA 解析，规避国内 IPv6 链路不稳定导致的查询超时卡顿
-- 无 `fallback` 机制（fallback 请求不走代理，本身就是泄露源）
+- 不继承订阅 `fallback`、`fallback-filter`、`fallback-lazy-query` 或旧 `proxy-server-nameserver-policy`，避免引入另一套解析路径。Mihomo 的 fallback 也可遵循 respect-rules，不能把它无条件等同于直连泄露
+
+### DNS 遗留字段策略（Mihomo v1.19.32 schema）
+
+| 处理 | 字段 |
+| --- | --- |
+| 清除 | fallback、fallback-filter（含 geoip/geoip-code/geosite/ipcidr/domain）、fallback-lazy-query、proxy-server-nameserver-policy |
+| 由脚本重建 | nameserver、proxy-server-nameserver、direct-nameserver、direct-nameserver-follow-policy、nameserver-policy、default-nameserver、enhanced-mode、fake-ip-range / fake-ip-range6、fake-ip-filter-mode |
+| 显式合并 | fake-ip-filter：仅源配置未指定 mode 或使用 blacklist 时继承并去重；whitelist/rule 的条目不能直接解释为 blacklist，故不继承 |
+| 保持现有脚本值 | enable、listen、ipv6、cache-algorithm、prefer-h3、use-hosts、use-system-hosts、respect-rules |
+| 继承兼容调节参数 | cache-max-size、fake-ip-ttl、ipv6-timeout、listen-routing-mark |
+
+脚本没有盲目丢弃整个 dns 对象；当前 schema 的解析路径字段分别重建或清除。未来新增字段需要重新审查。
 
 ### 4. 分流规则要点
 
@@ -124,7 +144,7 @@ Bettbox / FlClash v3.2 Hybrid（`bettbox-flclash.js`）：
 
 - TUN：mixed 栈 / strict-route = true（严格接管 TUN 路由）/ endpoint-independent-nat / dns-hijack / MTU 1500
 - Runtime：tcp-concurrent / unified-delay / store-selected / log-level warning
-- Sniffer：HTTP + TLS + QUIC(HTTP/3)，全局关闭 override-destination 保护 FCM 长连接
+- Sniffer：HTTP + TLS + QUIC(HTTP/3)。全局 `override-destination=false`；HTTP 单独为 false，TLS / QUIC 单独为 true，并覆盖全局默认值
 
 ---
 
@@ -151,8 +171,8 @@ Bettbox / FlClash v3.2 Hybrid（`bettbox-flclash.js`）：
 
 | App 设置项                   | 应设为          | 不这么设的后果                                          |
 | ---------------------------- | --------------- | ------------------------------------------------------- |
-| 设置 → 网络 → **覆写 DNS**   | **关闭**（默认）| 打开会用 App 默认 DNS 整块替换本脚本的防泄露 DNS 架构    |
-| 设置 → 网络 → **追加系统 DNS** | **关闭**（默认）| 打开会向 `nameserver` 注入 `system://`，直接构成 DNS 泄露 |
+| 设置 → 网络 → **覆写 DNS**   | **关闭**（默认）| 打开会按客户端版本/所选字段覆盖脚本 DNS 配置    |
+| 设置 → 网络 → **追加系统 DNS** | **关闭**（默认）| 打开会向 `nameserver` 注入 `system://`，增加系统解析路径 |
 | 出站模式                     | 规则            | 全局 / 直连会绕开分流规则                               |
 | TUN 栈                       | mixed           | 其他栈在部分机型上兼容性较差                            |
 | 查找进程                     | off             | 手机端无进程规则，开启（App 默认 always）徒增开销       |
@@ -165,7 +185,7 @@ keep-alive-interval / 「记住选择」等，同样以 App 设置为准。
 
 ### 自定义
 
-自定义常量位于 `src/user-config.ts`（三版共享）：
+自定义常量位于 `src/user-config.ts`（四版共享）：
 
 ```ts
 /** 强制直连的域名（后缀匹配），示例：["mycompany.com", "internal.example"] */
@@ -178,7 +198,7 @@ export const CUSTOM_FILTER = /示例占位符1|示例占位符2|示例占位符3
 
 两种修改方式：
 
-1. **推荐**：改 `src/user-config.ts` 后 `pnpm build` 重新生成（改动进入三份产物且不会丢失）
+1. **推荐**：改 `src/user-config.ts` 后 `pnpm build` 重新生成（改动进入四份产物且不会丢失）
 2. **临时**：直接编辑产物 JS 顶部的同名常量（在 IIFE 内第一段）——注意
    下次 `pnpm build` 会覆盖手改内容
 
@@ -191,10 +211,10 @@ regexp2 匹配），所以自定义时注意别让它命中「自动测速」「
 ## 常见问题
 
 **Q：如何确认没有 DNS 泄露？**
-用 [browserleaks.com/dns](https://browserleaks.com/dns) 或 [ipleak.net](https://ipleak.net) 复测，应只显示代理出口侧解析商（Cloudflare / Google 等），不出现国内运营商或阿里/腾讯 DNS。若个别浏览器仍泄露，检查浏览器自身的「安全 DNS」设置（Chrome：设置 → 隐私 → 使用安全 DNS）——该路径在浏览器内部加密直发，代理内核无法接管，关闭即可。
+用 [browserleaks.com/dns](https://browserleaks.com/dns) 或 [ipleak.net](https://ipleak.net) 复测，并结合实际生成的 DNS 配置、连接日志和出口判断。AliDNS / DNSPod 是脚本主动配置的国内 DoH，看到它们本身不能单独证明泄露；重点检查非预期的本地运营商 DNS 或其他非设计解析路径。Chrome / Edge 的「安全 DNS」会使用浏览器自己的 DoH 上游；TUN 可能路由这条 HTTPS 连接，但不能使其自动遵循脚本的 nameserver-policy。需要统一 policy 时可关闭浏览器安全 DNS，再复测。
 
 **Q：导入后所有节点超时？**
-通常是节点服务器域名解析失败。本脚本已将 `proxy-server-nameserver` 固定为国内加密 DoH（直连可达）；若机场域名被特殊污染，可在脚本 `DNS_SERVERS.CN_DOH` 中更换上游。
+节点服务器域名解析失败是可能原因之一。脚本使用国内加密 DoH 独立解析节点域名；实际可达性仍需核查。若机场域名解析异常，可检查节点域名、上游响应与客户端最终配置。
 
 **Q：YouTube 提示「未联网」/ Google 页面白屏？**
 本脚本已通过规则顺序修复（google 先于 google-cn）。若仍出现，清一次浏览器 DNS 缓存（`chrome://net-internals/#dns`）并重启 TUN。
@@ -212,8 +232,9 @@ regexp2 匹配），所以自定义时注意别让它命中「自动测速」「
 若节点存在却被过滤光，检查 `CUSTOM_FILTER` 是否写得过宽（它会进 `exclude-filter`）。
 
 **Q：手机上 DNS 泄露测试仍显示国内解析商？**
-99% 是 App 的「覆写 DNS」或「追加系统 DNS」被打开了，见上文设置表格。
-这两项会在脚本执行之后改写 DNS 配置，脚本无法阻止。
+先检查 App 的「覆写 DNS」「追加系统 DNS」、系统 Private DNS，以及浏览器安全 DNS，再核对实际生成配置。国内 DoH 是主动设计的一部分，不能只看解析商名称就认定泄露。App 的这些选项会在脚本执行之后改写 DNS 配置。
+
+**Android / Samsung Private DNS：** 若目标是让查询统一受 Mihomo nameserver-policy 控制，建议在系统网络设置中关闭自定义 Private DNS / DoT，具体菜单因机型和版本而异。DoT 请求可能脱离 Mihomo DNS 模块的统一 policy 控制，53 端口的 dns-hijack 不能解密这类请求；实际流量路由仍需真机核实。
 
 ---
 
@@ -261,7 +282,7 @@ scripts/verify.mjs         # 第 1 级校验：node:vm 冒烟断言 + YAML 导�
 scripts/verify-kernel.mjs  # 第 2 级校验：真实 mihomo 内核 -t
 scripts/verify-runtime.mjs # 第 3 级校验：启动内核查 API，验策略组运行时成员
 vite.config.ts     # Vite 8 库模式四产物构建配置
-.github/workflows/ci.yml  # CI：类型检查 → 单测 → 构建 → 内核校验（发布闸门）→ 产物提交/一致性
+.github/workflows/ci.yml  # CI：类型检查 → 单测 → 构建 → 内核校验 → 产物提交/一致性（main post-push validation）
 ```
 
 ---
@@ -290,15 +311,21 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
   `{script}\nmain(config)` 求值，只传 1 个参数，同一份桥接同时满足两者
 - target ES2020（boa 与 QuickJS 均支持 90%+ 最新 ES 规范），`minify: false`
   保留全部中文注释，产物可读可审计
-- 三级校验后才同步产物：第 1 级 `node:vm` 裸沙箱断言（DNS 防泄露铁律、
-  规则集引用一致性、三版规则骨架一致、策略组完整性、`exclude-filter`
-  匹配行为等），第 2 级真实 mihomo 内核 `-t` 配置测试，第 3 级实际启动
-  内核查 `/proxies` API 断言策略组运行时成员；CI 对每次 push 全量执行
-  并校验产物与源码一致
+- 第 1 级 `node:vm` 裸沙箱验证四版规则/DNS/策略组及边界输入，通过后导出 YAML 并同步四份产物到本地仓库根目录；第 2 级使用真实 Mihomo `-t` 检查配置可解析；第 3 级启动关闭 TUN 的内核，检查 `/proxies`、本地 DNS 与 HTTP fixture。CI 对 main push 执行 post-push validation，对 PR 执行验证和产物一致性检查；没有 branch protection 时，这不是阻止未经验证 commit 进入 main 的发布前 Gate。
+- runtime fixture 使用本地 proxy-provider、inline rule-provider 与本地 DNS/HTTP 响应器。PASS 不代表真实 TUN 流量、生产 DoH 路由或 Android 真机 DNS leak PASS；未执行的场景为 NOT_RUN。
 
 ---
 
 ## 更新日志
+
+### v3.2.1 Hybrid（2026-10）
+
+- 清理原订阅备用 DNS 路径和节点解析 policy，保留兼容的 Fake-IP blacklist、TTL/cache/listener 参数。
+- 禁止继承任何 MATCH，保留普通 DIRECT 例外，最终 MATCH 由脚本独占。
+- 内联节点与保留组名冲突时加后缀，并更新节点/provider 的 dialer/download 引用；DIRECT 等内置目标引用保持原义。
+- 动态 provider 的保留名节点从 include-all 池中排除，显式组引用保持有效；撞名节点仍需机场或用户 provider override 改名，节点可用性修复为 PARTIAL。
+- 地区 ASCII token 边界统一，支持空格、连字符、下划线、竖线、括号和数字，恢复 GB；CA 仍不采用裸 CA。
+- 广告拦截 OFF → DIRECT；更新 DNS、Sniffer、CI 说明和 MIT 元数据。
 
 ### v3.2 Hybrid（2026-10）
 
@@ -401,7 +428,7 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
 - 双级校验：`node:vm` 冒烟断言（含双版规则骨架一致性 + 零节点规则出口
   检查）+ 真实内核 `mihomo -t`（含零节点边界配置，已过 v1.19.25）；
   vitest 单元测试 36 项
-- CI：类型检查 → 单测 → 构建 → **内核校验（发布闸门）** → 产物提交 /
+- CI：类型检查 → 单测 → 构建 → **内核校验（CI validation）** → 产物提交 /
   一致性检查；pnpm-lock.yaml 入库保证可复现构建
 
 ### v2.2（2026-07）
@@ -439,7 +466,7 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
 - LinuxDO 社区的经验与最佳实践
 
 
-## FlClash v3.2 Hybrid 分支
+## FlClash v3.2.1 Hybrid 分支
 
 本分支基于 mihomo-proxy 的 Bettbox TypeScript 实现，仅参考 [Perfect-Rules](https://github.com/n0de-sudo/Perfect-Rules) 的独立服务/地区组产品能力。源码入口为 src/bettbox-main.ts；构建产物为 bettbox-flclash.js（pnpm build 自动生成，不手改）。
 

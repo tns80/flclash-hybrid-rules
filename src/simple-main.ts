@@ -1,3 +1,4 @@
+import { rewriteProxyReferences } from "./proxy-names";
 import { CUSTOM_FILTER } from "./user-config";
 import { SETTINGS } from "./settings";
 import { sortProxyNames, uniq } from "./utils";
@@ -171,7 +172,7 @@ export function simpleMain(config: ClashConfig): ClashConfig {
   };
   config.rules = mergeRules(STATIC_RULES, pickDirectRules(existingRules));
 
-  makeProxyNamesUnique(originalProxies);
+  rewriteProxyReferences(config, makeProxyNamesUnique(originalProxies));
   config["proxy-groups"] = buildSimpleProxyGroups(
     buildProxyPools(originalProxies),
   );

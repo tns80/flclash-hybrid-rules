@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync, copyFileSync } from "node:fs";
 import vm from "node:vm";
 import yaml from "js-yaml";
+import { boundaryInput, RESERVED_TEST_NAMES } from "./hybrid-fixtures.mjs";
 
 let failed = false;
 const assert = (cond, msg) => {
@@ -49,7 +50,11 @@ const sampleConfig = () => ({
     sampleProxy("剩余流量：100GB"),
     sampleProxy("🇭🇰 香港 IEPL 01"), // 故意重名
   ],
-  rules: ["DOMAIN-SUFFIX,mycompany.com,DIRECT", "MATCH,Proxy"],
+  rules: ["DOMAIN-SUFFIX,mycompany.com,DIRECT", "MATCH,DIRECT", "MATCH,REJECT", "MATCH,Proxy"],
+  dns: {
+    fallback: ["127.0.0.1:9"], "fallback-filter": { geoip: false },
+    "fallback-lazy-query": true, "proxy-server-nameserver-policy": { "+.old.example": "114.114.114.114" },
+  },
 });
 
 /**
@@ -109,6 +114,9 @@ const assertRuleTargets = (tag, result) => {
 
 /** 两个版本共同的断言（DNS 防泄露铁律 / 规则一致性 / 节点处理） */
 const assertCommon = (tag, result) => {
+  for (const key of ["fallback", "fallback-filter", "fallback-lazy-query", "proxy-server-nameserver-policy"])
+    assert(!(key in result.dns), `[${tag}] inherited DNS ${key} removed`);
+  assert(result.rules.filter((r) => /^MATCH,/i.test(r)).length === 1, `[${tag}] exactly one final MATCH`);
   assert(typeof result === "object" && !!result, `[${tag}] main 返回对象`);
   assert(
     result.dns?.["respect-rules"] === true,
@@ -782,6 +790,7 @@ assertCommon("bettbox", bettbox);
     GitHub: false,
     Netflix: false,
     TikTok: false,
+    广告拦截: false,
     地区分组: false,
     屏蔽QUIC: false,
   };
@@ -795,6 +804,7 @@ assertCommon("bettbox", bettbox);
     })();
   `;
   const customResult = vm.runInNewContext(evaluateCustomCode);
+  assert(customResult.rules[0] === "RULE-SET,category-ads-all,DIRECT", "[bettbox-custom] advertising OFF routes DIRECT");
   const customGroupNames = (customResult["proxy-groups"] ?? []).map((g) => g.name);
 
   for (const [name, keys] of [
@@ -842,6 +852,20 @@ assertCommon("bettbox", bettbox);
     "[bettbox-自定义] 关闭屏蔽QUIC后未生成 QUIC 阻断规则",
   );
   assertRuleTargets("bettbox-custom", customResult);
+}
+
+// Boundary artifacts become real -t inputs, not just source-level assertions.
+for (const [tag, file, target] of [
+  ["full", "mihomo-proxy.js", "main"], ["simple", "simple-mihomo.js", "全部"],
+  ["flclash", "flclash-mobile.js", "全部"], ["bettbox", "bettbox-flclash.js", "main"],
+]) {
+  const cfg = runScript(file, boundaryInput(), 1);
+  const names = cfg.proxies.map((p) => p.name);
+  assert(new Set(names).size === names.length && names.every((n) => !RESERVED_TEST_NAMES.includes(n)), `[${tag}-boundary] inline namespace safe`);
+  assert(cfg.rules.filter((r) => /^MATCH,/i.test(r)).join() === `MATCH,${target}` && cfg.rules.at(-1) === `MATCH,${target}`, `[${tag}-boundary] owns only terminal rule`);
+  assert(cfg.rules.includes("DOMAIN-SUFFIX,example.com,DIRECT"), `[${tag}-boundary] ordinary DIRECT exception retained`);
+  assert(!("fallback" in cfg.dns) && !("proxy-server-nameserver-policy" in cfg.dns), `[${tag}-boundary] DNS alternate paths absent`);
+  writeFileSync(new URL(`../dist/test-${tag}-boundaries.yaml`, import.meta.url), yaml.dump(cfg, { lineWidth: -1 }));
 }
 
 // ============ 导出内核校验用 YAML + 同步产物 ============

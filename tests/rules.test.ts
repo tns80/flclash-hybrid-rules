@@ -76,6 +76,21 @@ describe("buildStaticRules", () => {
 });
 
 describe("pickDirectRules", () => {
+  it.each(["MATCH,DIRECT", "MATCH,REJECT", "MATCH,OldGroup", " match ,DIRECT"])(
+    "never inherits terminal rule %s", (terminal) => {
+      const direct = "DOMAIN-SUFFIX,example.com,DIRECT";
+      const ip = "IP-CIDR,192.0.2.0/24,DIRECT,no-resolve";
+      const picked = pickDirectRules([direct, ip, terminal]);
+      expect(picked).toEqual([direct, ip]);
+      for (const target of [FULL, SIMPLE]) {
+        const result = mergeRules(buildStaticRules(target), picked);
+        expect(result.filter((r) => /^MATCH,/i.test(r))).toEqual([`MATCH,${target.proxy}`]);
+        expect(result.at(-1)).toBe(`MATCH,${target.proxy}`);
+        expect(result).toContain(direct);
+        expect(result).toContain(ip);
+      }
+    },
+  );
   it("仅保留 DIRECT 规则，跳过注释与空行", () => {
     expect(
       pickDirectRules([
@@ -94,6 +109,10 @@ describe("pickDirectRules", () => {
 
 describe("mergeRules", () => {
   const base = ["RULE-SET,a,X", "MATCH,main"];
+  it("rejects terminal extra rules even if passed without pickDirectRules", () => {
+    expect(mergeRules(base, ["MATCH,DIRECT", "MATCH,REJECT", "MATCH,OldGroup"]))
+      .toEqual(base);
+  });
   it("额外规则插入 MATCH 之前", () => {
     expect(mergeRules(base, ["DOMAIN,u.com,DIRECT"])).toEqual([
       "RULE-SET,a,X",

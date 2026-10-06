@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { bettboxMain, DEFAULT_RULE_OPTIONS } from "../src/bettbox-main";
 import { DNS_SERVERS, SETTINGS } from "../src/settings";
 import type { ClashConfig, ProxyGroup } from "../src/types";
+import { RESERVED_GROUP_NAMES } from "../src/proxy-names";
 
 const host = globalThis as typeof globalThis & {
   ruleOptionsEnable?: Record<string, boolean>;
@@ -28,6 +29,22 @@ const serviceRules = [
 ];
 
 describe("FlClash Hybrid", () => {
+  it.each([true, false])("advertising switch %s controls the actual rule target", (enabled) => {
+    host.ruleOptionsEnable = { 广告拦截: enabled };
+    const cfg = bettboxMain(source());
+    expect(cfg.rules![0]).toBe(`RULE-SET,category-ads-all,${enabled ? "广告拦截" : "DIRECT"}`);
+    expect(groups(cfg).some((g) => g.name === "广告拦截")).toBe(enabled);
+  });
+
+  it("covers every generated group in the reserved namespace", () => {
+    const cfg = bettboxMain(source());
+    for (const g of groups(cfg)) expect(RESERVED_GROUP_NAMES.has(g.name)).toBe(true);
+    const excludeReserved = regex(group(cfg, "All").filter!);
+    for (const name of RESERVED_GROUP_NAMES) expect(excludeReserved.test(name)).toBe(false);
+    expect(excludeReserved.test("main_1")).toBe(true);
+    // Explicit group references survive: the kernel applies filter only to nodes/providers.
+    expect(group(cfg, "All").proxies).toContain("URL Test - All");
+  });
   it("builds MetaCubeX mrs providers with daily local cache", () => {
     const cfg = bettboxMain(source());
     for (const [key, directory, file] of [

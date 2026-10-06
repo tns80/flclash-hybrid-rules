@@ -1,3 +1,4 @@
+import { rewriteProxyReferences } from "./proxy-names";
 import { CUSTOM_FILTER } from "./user-config";
 import { SETTINGS } from "./settings";
 import { uniq } from "./utils";
@@ -74,7 +75,7 @@ export function main(config: ClashConfig): ClashConfig {
 
   // 节点分类与策略组
   if (originalProxies.length) {
-    makeProxyNamesUnique(originalProxies);
+    rewriteProxyReferences(config, makeProxyNamesUnique(originalProxies));
     const filtered = filterCustomProxies(originalProxies, CUSTOM_FILTER);
     const { infoProxies, normalProxies } = splitInfoAndNormalProxies(
       filtered,

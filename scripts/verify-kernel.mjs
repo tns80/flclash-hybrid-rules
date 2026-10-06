@@ -60,6 +60,10 @@ for (const file of [
   "test-simple-empty.yaml",
   "test-flclash-empty.yaml",
   "test-bettbox-empty.yaml",
+  "test-full-boundaries.yaml",
+  "test-simple-boundaries.yaml",
+  "test-flclash-boundaries.yaml",
+  "test-bettbox-boundaries.yaml",
 ]) {
   const cfg = path.join(distDir, file);
   if (!existsSync(cfg)) {

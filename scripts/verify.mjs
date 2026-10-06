@@ -11,7 +11,7 @@
 import { readFileSync, writeFileSync, copyFileSync } from "node:fs";
 import vm from "node:vm";
 import yaml from "js-yaml";
-import { boundaryInput, RESERVED_TEST_NAMES } from "./hybrid-fixtures.mjs";
+import { boundaryInput, RESERVED_TEST_NAMES, DIRECT_INPUT_RULES, DIRECT_OUTPUT_RULES } from "./hybrid-fixtures.mjs";
 
 let failed = false;
 const assert = (cond, msg) => {
@@ -864,6 +864,9 @@ for (const [tag, file, target] of [
   assert(new Set(names).size === names.length && names.every((n) => !RESERVED_TEST_NAMES.includes(n)), `[${tag}-boundary] inline namespace safe`);
   assert(cfg.rules.filter((r) => /^MATCH,/i.test(r)).join() === `MATCH,${target}` && cfg.rules.at(-1) === `MATCH,${target}`, `[${tag}-boundary] owns only terminal rule`);
   assert(cfg.rules.includes("DOMAIN-SUFFIX,example.com,DIRECT"), `[${tag}-boundary] ordinary DIRECT exception retained`);
+  assert(DIRECT_OUTPUT_RULES.every((rule) => cfg.rules.includes(rule)), `[${tag}-boundary] DIRECT targets canonicalized, including logical targets and no-resolve`);
+  assert(DIRECT_INPUT_RULES.filter((rule) => !DIRECT_OUTPUT_RULES.includes(rule)).every((rule) => !cfg.rules.includes(rule)), `[${tag}-boundary] mixed-case targets/MATCH and DIRECT payload false positive absent`);
+  assert(cfg.rules.filter((rule) => rule === "DOMAIN-SUFFIX,growingio.com,DIRECT").length === 1, `[${tag}-boundary] canonical DIRECT case variants deduplicated`);
   assert(!("fallback" in cfg.dns) && !("proxy-server-nameserver-policy" in cfg.dns), `[${tag}-boundary] DNS alternate paths absent`);
   writeFileSync(new URL(`../dist/test-${tag}-boundaries.yaml`, import.meta.url), yaml.dump(cfg, { lineWidth: -1 }));
 }

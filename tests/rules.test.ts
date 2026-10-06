@@ -76,7 +76,51 @@ describe("buildStaticRules", () => {
 });
 
 describe("pickDirectRules", () => {
-  it.each(["MATCH,DIRECT", "MATCH,REJECT", "MATCH,OldGroup", " match ,DIRECT"])(
+  it.each(["DIRECT", "Direct", "direct", "dIrEcT"])("normalizes target %s", (target) => {
+    expect(pickDirectRules([`DOMAIN-SUFFIX,growingio.com,${target}`]))
+      .toEqual(["DOMAIN-SUFFIX,growingio.com,DIRECT"]);
+  });
+  it("normalizes only the target while keeping payload and params", () => {
+    expect(pickDirectRules([
+      "IP-CIDR,192.0.2.0/24,Direct,no-resolve",
+      "DOMAIN-KEYWORD,Direct,Direct",
+      "RULE-SET,Direct,Direct,no-resolve",
+      "PROCESS-PATH,C:\\Direct (app)\\direct.exe,direct",
+    ])).toEqual([
+      "IP-CIDR,192.0.2.0/24,DIRECT,no-resolve",
+      "DOMAIN-KEYWORD,Direct,DIRECT",
+      "RULE-SET,Direct,DIRECT,no-resolve",
+      "PROCESS-PATH,C:\\Direct (app)\\direct.exe,DIRECT",
+    ]);
+  });
+  it("does not mistake payloads, parameters or sub-rule references for targets", () => {
+    expect(pickDirectRules([
+      "DOMAIN-KEYWORD,DIRECT,main", "DOMAIN,DIRECT,main",
+      "RULE-SET,DIRECT,main", "IP-CIDR,192.0.2.0/24,main,DIRECT",
+      "SUB-RULE,(NETWORK,tcp),DIRECT", "UNKNOWN,payload,DIRECT",
+      "DOMAIN,,Direct", "DOMAIN,Direct",
+    ])).toEqual([]);
+  });
+  it.each([
+    "DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6",
+    "SRC-IP-CIDR", "DST-PORT", "SRC-PORT", "PROCESS-NAME", "PROCESS-PATH",
+    "RULE-SET", "GEOSITE", "GEOIP",
+  ])("reads the third field for %s", (type) => {
+    expect(pickDirectRules([`${type},payload,Direct`])).toEqual([`${type},payload,DIRECT`]);
+  });
+  it.each([
+    "AND,((NETWORK,tcp),(DOMAIN-KEYWORD,DIRECT)),Direct",
+    "OR,((DOMAIN,a.com),(AND,((NETWORK,tcp),(DST-PORT,443)))),direct",
+    "NOT,((DOMAIN,DIRECT)),dIrEcT",
+  ])("normalizes the outer logical target: %s", (rule) => {
+    expect(pickDirectRules([rule])).toEqual([rule.replace(/,[^,]+$/, ",DIRECT")]);
+    expect(pickDirectRules([rule.replace(/,[^,]+$/, ",main")])).toEqual([]);
+  });
+  it("rejects malformed logical payloads", () => {
+    expect(pickDirectRules(["AND,((NETWORK,tcp),Direct", "NOT,),DIRECT", "OR,payload,DIRECT"]))
+      .toEqual([]);
+  });
+  it.each(["MATCH,DIRECT", "MATCH,Direct", "MATCH,direct", "MATCH,dIrEcT", "MATCH,REJECT", "MATCH,OldGroup", " match ,DIRECT"])(
     "never inherits terminal rule %s", (terminal) => {
       const direct = "DOMAIN-SUFFIX,example.com,DIRECT";
       const ip = "IP-CIDR,192.0.2.0/24,DIRECT,no-resolve";
@@ -109,6 +153,15 @@ describe("pickDirectRules", () => {
 
 describe("mergeRules", () => {
   const base = ["RULE-SET,a,X", "MATCH,main"];
+  it("canonicalizes direct extra targets before deduplication and keeps one final MATCH", () => {
+    expect(mergeRules([...base, "MATCH,Other"], [
+      "DOMAIN-SUFFIX,growingio.com,Direct", "DOMAIN-SUFFIX,growingio.com,direct",
+      "IP-CIDR,192.0.2.0/24,Direct,no-resolve", "MATCH,Direct",
+    ])).toEqual([
+      "RULE-SET,a,X", "DOMAIN-SUFFIX,growingio.com,DIRECT",
+      "IP-CIDR,192.0.2.0/24,DIRECT,no-resolve", "MATCH,main",
+    ]);
+  });
   it("rejects terminal extra rules even if passed without pickDirectRules", () => {
     expect(mergeRules(base, ["MATCH,DIRECT", "MATCH,REJECT", "MATCH,OldGroup"]))
       .toEqual(base);

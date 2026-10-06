@@ -11,7 +11,7 @@ https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bet
 
 后续更新可使用 git fetch upstream，并在人工审查后合并 upstream/main。
 
-mihomo（Clash Meta）配置增强脚本 · v3.2.1 Hybrid
+mihomo（Clash Meta）配置增强脚本 · v3.2.2 Hybrid
 
 在 Sparkle / Clash Verge Rev（电脑）或 FlClash（手机）中作为**覆写脚本**加载，自动完成节点分组、服务级分流、DNS 防泄露分流与 TUN/Sniffer 网络优化。主要面向国内复杂网络（含校园网）与多地区机场订阅，目标是改善 Google 全家桶 / AI / 流媒体的稳定性，并减少非预期 DNS 解析路径；脚本不能保证所有系统与 App 场景都没有 DNS 泄露。
 
@@ -84,7 +84,7 @@ https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bet
 生成的配置里不含成百上千行节点名，手机上加载更快。测速间隔放宽到 600s、
 容差 80ms，降低后台唤醒频率与移动网络抖动导致的频繁切换。
 
-Bettbox / FlClash v3.2.1 Hybrid（`bettbox-flclash.js`）：
+Bettbox / FlClash v3.2.2 Hybrid（`bettbox-flclash.js`）：
 
 兼具桌面完整版的丰富策略组与移动端的轻量动态架构：
 - **完整策略组体系**：`main`（主入口）/ `All` / `GLOBAL`，服务组为 `Google` / `YouTube` / `GitHub` / `Netflix` / `TikTok` / `AI`（排除香港）/ `Telegram` / `Steam` / `Apple` / `Microsoft` / `Spotify` / `广告拦截`
@@ -318,6 +318,12 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
 
 ## 更新日志
 
+### v3.2.2 Hybrid（2026-10）
+
+- 修复原订阅 DIRECT 策略目标大小写不规范导致 Mihomo `proxy [Direct] not found`。
+- preserved DIRECT 现在按目标字段识别并规范为内置 `DIRECT`。
+- 防止匹配参数中出现 DIRECT 时被误判为 DIRECT 出口规则。
+
 ### v3.2.1 Hybrid（2026-10）
 
 - 清理原订阅备用 DNS 路径和节点解析 policy，保留兼容的 Fake-IP blacklist、TTL/cache/listener 参数。
@@ -466,7 +472,7 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
 - LinuxDO 社区的经验与最佳实践
 
 
-## FlClash v3.2.1 Hybrid 分支
+## FlClash v3.2.2 Hybrid 分支
 
 本分支基于 mihomo-proxy 的 Bettbox TypeScript 实现，仅参考 [Perfect-Rules](https://github.com/n0de-sudo/Perfect-Rules) 的独立服务/地区组产品能力。源码入口为 src/bettbox-main.ts；构建产物为 bettbox-flclash.js（pnpm build 自动生成，不手改）。
 

@@ -23,7 +23,7 @@ const FULL = {
   name: "__mihomoProxy",
   fileName: "mihomo-proxy.js",
   banner: `/**
- * mihomo-proxy — Ultimate Stable Edition v3.2.1 Hybrid
+ * mihomo-proxy — Ultimate Stable Edition v3.2.2 Hybrid
  * ------------------------------------------------------------------
  * 面向 Sparkle / 最新 Mihomo(Clash.Meta) 内核的配置增强脚本。
  * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
@@ -41,7 +41,7 @@ const SIMPLE = {
   name: "__mihomoSimple",
   fileName: "simple-mihomo.js",
   banner: `/**
- * simple-mihomo — 极简业务分流版 v3.2.1 Hybrid
+ * simple-mihomo — 极简业务分流版 v3.2.2 Hybrid
  * ------------------------------------------------------------------
  * mihomo-proxy.js 的极简姊妹版：保留全部业务分流与 DNS/TUN 优化，
  * 但策略组只有三个，节点不做地区分组，简洁好理解：
@@ -67,7 +67,7 @@ const BETTBOX = {
   fileName: "bettbox-flclash.js",
   banner: `const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 /**
- * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2.1 Hybrid
+ * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2.2 Hybrid
  * ------------------------------------------------------------------
  * 面向 Bettbox 与 FlClash 系列客户端的完整分流覆写脚本。
  * 集成 Compatible_With_Bettbox 可视化开关适配、include-all 运行时
@@ -138,7 +138,7 @@ const FLCLASH = {
   name: "__mihomoFlClash",
   fileName: "flclash-mobile.js",
   banner: `/**
- * flclash-mobile — FlClash（手机端）覆写脚本 v3.2.1 Hybrid
+ * flclash-mobile — FlClash（手机端）覆写脚本 v3.2.2 Hybrid
  * ------------------------------------------------------------------
  * 与 simple-mihomo 同样的三个策略组、同一套业务分流 / DNS 防泄露 /
  * Sniffer 源码，但节点改由内核 include-all + 正则过滤在运行时纳入：

@@ -38,9 +38,25 @@ export const REGION_SAMPLES = [...new Map(required.map(([name, region]) => [name
 
 export const sampleNode = (name) => ({ name, type: "ss", server: "127.0.0.1", port: 9, cipher: "aes-128-gcm", password: "fixture" });
 
+export const DIRECT_INPUT_RULES = [
+  ...["DIRECT", "Direct", "direct", "dIrEcT"].map((target) => `DOMAIN-SUFFIX,growingio.com,${target}`),
+  "IP-CIDR,192.0.2.0/24,Direct,no-resolve",
+  "DOMAIN-KEYWORD,DIRECT,main",
+  "AND,((DOMAIN-SUFFIX,growingio.com),(NETWORK,tcp)),Direct",
+  "OR,((DOMAIN,growingio.com),(DOMAIN,www.growingio.com)),direct",
+  "NOT,((DOMAIN,never.example.invalid)),dIrEcT",
+  "MATCH,Direct", "MATCH,direct", "MATCH,dIrEcT",
+];
+export const DIRECT_OUTPUT_RULES = [
+  "DOMAIN-SUFFIX,growingio.com,DIRECT", "IP-CIDR,192.0.2.0/24,DIRECT,no-resolve",
+  "AND,((DOMAIN-SUFFIX,growingio.com),(NETWORK,tcp)),DIRECT",
+  "OR,((DOMAIN,growingio.com),(DOMAIN,www.growingio.com)),DIRECT",
+  "NOT,((DOMAIN,never.example.invalid)),DIRECT",
+];
+
 export const boundaryInput = (oldFallback = "127.0.0.1:9") => ({
   proxies: [...RESERVED_TEST_NAMES.map(sampleNode), sampleNode("main_1"), sampleNode("UK_1")],
-  rules: ["DOMAIN-SUFFIX,example.com,DIRECT", "IP-CIDR,192.0.2.0/24,DIRECT,no-resolve", "MATCH,DIRECT", "MATCH,REJECT", "MATCH,OldGroup"],
+  rules: ["DOMAIN-SUFFIX,example.com,DIRECT", "IP-CIDR,192.0.2.0/24,DIRECT,no-resolve", "MATCH,DIRECT", "MATCH,REJECT", "MATCH,OldGroup", ...DIRECT_INPUT_RULES],
   dns: {
     fallback: [oldFallback], "fallback-filter": { geoip: false, domain: ["fallback-probe.example.net"] },
     "fallback-lazy-query": true,

@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import yaml from "js-yaml";
-import { boundaryInput, REGION_SAMPLES, REGIONS, RESERVED_TEST_NAMES, sampleNode } from "./hybrid-fixtures.mjs";
+import { boundaryInput, REGION_SAMPLES, REGIONS, RESERVED_TEST_NAMES, sampleNode, DIRECT_INPUT_RULES, DIRECT_OUTPUT_RULES } from "./hybrid-fixtures.mjs";
 
 const ADS_HOST = "ads-boundary.example.net";
 const DNS_HOST = "fallback-probe.example.net";
@@ -109,6 +109,9 @@ export async function verifyHybridBoundaries(kernel, distDir) {
       assert.deepEqual(Array.from(cfg.rules.filter((rule) => /^MATCH,/i.test(rule))), ["MATCH,main"]);
       assert.equal(cfg.rules.at(-1), "MATCH,main");
       assert.ok(cfg.rules.includes("DOMAIN-SUFFIX,example.com,DIRECT"));
+      for (const rule of DIRECT_OUTPUT_RULES) assert.ok(cfg.rules.includes(rule), `canonical DIRECT rule missing: ${rule}`);
+      for (const rule of DIRECT_INPUT_RULES.filter((rule) => !DIRECT_OUTPUT_RULES.includes(rule)))
+        assert.ok(!cfg.rules.includes(rule), `unsafe inherited rule: ${rule}`);
       assert.equal(cfg.rules[0], `RULE-SET,category-ads-all,${advertising ? "广告拦截" : "DIRECT"}`);
       assert.ok(cfg.proxies.every((node) => !RESERVED_TEST_NAMES.includes(node.name)));
       assert.ok(cfg.proxies.some((node) => node.name === "All_1" && node["dialer-proxy"] === "main_2"));

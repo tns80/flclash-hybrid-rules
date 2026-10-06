@@ -1,6 +1,6 @@
 const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 /**
-* bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2.1 Hybrid
+* bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2.2 Hybrid
 * ------------------------------------------------------------------
 * 面向 Bettbox 与 FlClash 系列客户端的完整分流覆写脚本。
 * 集成 Compatible_With_Bettbox 可视化开关适配、include-all 运行时
@@ -562,7 +562,7 @@ var __mihomoBettbox = (function(exports) {
 	* 合并用户既有规则中的 DIRECT 规则到 MATCH 之前，保持向后兼容。
 	*/
 	var mergeRules = (baseRules = [], extraRules = []) => {
-		const extra = Array.isArray(extraRules) ? extraRules.filter((rule) => rule && !isMatchRule(rule)) : [];
+		const extra = Array.isArray(extraRules) ? extraRules.filter((rule) => rule && !isMatchRule(rule)).map((rule) => normalizeDirectRule(rule) ?? rule) : [];
 		const match = baseRules.find(isMatchRule);
 		return uniq([
 			...baseRules.filter((rule) => !isMatchRule(rule)),
@@ -571,11 +571,70 @@ var __mihomoBettbox = (function(exports) {
 		]);
 	};
 	var isMatchRule = (rule) => /^MATCH\s*,/i.test(String(rule).trim());
-	/** 从用户既有规则中挑出 DIRECT 规则（供合并保留自定义直连） */
-	var pickDirectRules = (rules = []) => rules.filter((rule) => {
+	var ORDINARY_RULE_TYPES = /* @__PURE__ */ new Set([
+		"DOMAIN",
+		"DOMAIN-SUFFIX",
+		"DOMAIN-KEYWORD",
+		"DOMAIN-REGEX",
+		"DOMAIN-WILDCARD",
+		"GEOSITE",
+		"GEOIP",
+		"SRC-GEOIP",
+		"IP-ASN",
+		"SRC-IP-ASN",
+		"IP-CIDR",
+		"IP-CIDR6",
+		"SRC-IP-CIDR",
+		"IP-SUFFIX",
+		"SRC-IP-SUFFIX",
+		"DST-PORT",
+		"SRC-PORT",
+		"IN-PORT",
+		"DSCP",
+		"PROCESS-NAME",
+		"PROCESS-PATH",
+		"PROCESS-NAME-REGEX",
+		"PROCESS-PATH-REGEX",
+		"PROCESS-NAME-WILDCARD",
+		"PROCESS-PATH-WILDCARD",
+		"NETWORK",
+		"UID",
+		"IN-TYPE",
+		"IN-USER",
+		"IN-NAME",
+		"REMATCH-NAME",
+		"RULE-SET"
+	]);
+	/** Locate only the outbound field; commas inside logical payloads are nested. */
+	var normalizeDirectRule = (rule) => {
 		const r = String(rule || "").trim();
-		if (!r || r.startsWith("#") || isMatchRule(r)) return false;
-		return /,DIRECT(?:,|$)/i.test(r);
+		if (!r || r.startsWith("#") || isMatchRule(r)) return void 0;
+		const type = r.slice(0, r.indexOf(",")).trim();
+		let fields;
+		if (type === "AND" || type === "OR" || type === "NOT") {
+			fields = [];
+			let depth = 0, start = 0;
+			for (let i = 0; i < r.length; i++) if (r[i] === "(") depth++;
+			else if (r[i] === ")" && --depth < 0) return void 0;
+			else if (r[i] === "," && depth === 0) {
+				fields.push(r.slice(start, i));
+				start = i + 1;
+			}
+			if (depth !== 0) return void 0;
+			fields.push(r.slice(start));
+			if (!fields[1]?.trim().startsWith("(")) return void 0;
+		} else {
+			if (!ORDINARY_RULE_TYPES.has(type)) return void 0;
+			fields = r.split(",");
+		}
+		if (!fields[1]?.trim() || fields[2]?.trim().toUpperCase() !== "DIRECT") return void 0;
+		fields[2] = "DIRECT";
+		return fields.join(",");
+	};
+	/** Preserve DIRECT exceptions by target field and canonicalize the built-in name. */
+	var pickDirectRules = (rules = []) => rules.flatMap((rule) => {
+		const normalized = normalizeDirectRule(rule);
+		return normalized === void 0 ? [] : [normalized];
 	});
 	//#endregion
 	//#region src/dns.ts

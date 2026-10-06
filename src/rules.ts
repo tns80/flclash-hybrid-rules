@@ -150,6 +150,7 @@ export const mergeRules = (
 ): string[] => {
   const extra = Array.isArray(extraRules)
     ? extraRules.filter((rule) => rule && !isMatchRule(rule))
+        .map((rule) => normalizeDirectRule(rule) ?? rule)
     : [];
   const match = baseRules.find(isMatchRule);
   return uniq([
@@ -161,10 +162,51 @@ export const mergeRules = (
 
 const isMatchRule = (rule: string): boolean => /^MATCH\s*,/i.test(String(rule).trim());
 
-/** 从用户既有规则中挑出 DIRECT 规则（供合并保留自定义直连） */
+// Mihomo ordinary rules use TYPE,payload,target[,params]. SUB-RULE's third
+// field names another rule list, not an outbound target, so it is not inherited.
+const ORDINARY_RULE_TYPES = new Set([
+  "DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "DOMAIN-REGEX", "DOMAIN-WILDCARD",
+  "GEOSITE", "GEOIP", "SRC-GEOIP", "IP-ASN", "SRC-IP-ASN",
+  "IP-CIDR", "IP-CIDR6", "SRC-IP-CIDR", "IP-SUFFIX", "SRC-IP-SUFFIX",
+  "DST-PORT", "SRC-PORT", "IN-PORT", "DSCP", "PROCESS-NAME", "PROCESS-PATH",
+  "PROCESS-NAME-REGEX", "PROCESS-PATH-REGEX", "PROCESS-NAME-WILDCARD",
+  "PROCESS-PATH-WILDCARD", "NETWORK", "UID", "IN-TYPE", "IN-USER", "IN-NAME",
+  "REMATCH-NAME", "RULE-SET",
+]);
+
+/** Locate only the outbound field; commas inside logical payloads are nested. */
+const normalizeDirectRule = (rule: string): string | undefined => {
+  const r = String(rule || "").trim();
+  if (!r || r.startsWith("#") || isMatchRule(r)) return undefined;
+  const type = r.slice(0, r.indexOf(",")).trim();
+  let fields: string[];
+  if (type === "AND" || type === "OR" || type === "NOT") {
+    fields = [];
+    let depth = 0, start = 0;
+    for (let i = 0; i < r.length; i++) {
+      if (r[i] === "(") depth++;
+      else if (r[i] === ")" && --depth < 0) return undefined;
+      else if (r[i] === "," && depth === 0) {
+        fields.push(r.slice(start, i));
+        start = i + 1;
+      }
+    }
+    if (depth !== 0) return undefined;
+    fields.push(r.slice(start));
+    if (!fields[1]?.trim().startsWith("(")) return undefined;
+  } else {
+    if (!ORDINARY_RULE_TYPES.has(type)) return undefined;
+    fields = r.split(",");
+  }
+  if (!fields[1]?.trim() || fields[2]?.trim().toUpperCase() !== "DIRECT")
+    return undefined;
+  fields[2] = "DIRECT";
+  return fields.join(",");
+};
+
+/** Preserve DIRECT exceptions by target field and canonicalize the built-in name. */
 export const pickDirectRules = (rules: string[] = []): string[] =>
-  rules.filter((rule) => {
-    const r = String(rule || "").trim();
-    if (!r || r.startsWith("#") || isMatchRule(r)) return false;
-    return /,DIRECT(?:,|$)/i.test(r);
+  rules.flatMap((rule) => {
+    const normalized = normalizeDirectRule(rule);
+    return normalized === undefined ? [] : [normalized];
   });

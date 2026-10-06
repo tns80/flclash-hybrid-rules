@@ -28,8 +28,9 @@ const FULL = {
  * 面向 Sparkle / 最新 Mihomo(Clash.Meta) 内核的配置增强脚本。
  * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
  *
- * 仓库地址：https://github.com/wchiway/mihomo-proxy
- * 脚本链接：https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/mihomo-proxy.js
+ * 仓库地址：https://github.com/tns80/flclash-hybrid-rules
+ * Upstream: https://github.com/wchiway/mihomo-proxy
+ * 脚本链接：https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/mihomo-proxy.js
  * 客户端推荐：https://github.com/xishang0128/sparkle
  * 提醒：使用系统代理时 fake-ip 不会生效，建议使用 TUN 模式。
  */`,
@@ -53,8 +54,9 @@ const SIMPLE = {
  * 构建期即保证两版规则/DNS 架构一致，不再手工同步。
  * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
  *
- * 仓库地址：https://github.com/wchiway/mihomo-proxy
- * 脚本链接：https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/simple-mihomo.js
+ * 仓库地址：https://github.com/tns80/flclash-hybrid-rules
+ * Upstream: https://github.com/wchiway/mihomo-proxy
+ * 脚本链接：https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/simple-mihomo.js
  * 提醒：使用系统代理时 fake-ip 不会生效，建议使用 TUN 模式。
  */`,
 };
@@ -65,12 +67,13 @@ const BETTBOX = {
   fileName: "bettbox-flclash.js",
   banner: `const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 /**
- * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.0
+ * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.0 Hybrid
  * ------------------------------------------------------------------
  * 面向 Bettbox 与 FlClash 系列客户端的完整分流覆写脚本。
  * 集成 Compatible_With_Bettbox 可视化开关适配、include-all 运行时
  * 节点纳入、完整分流策略组（Google/YouTube/AI/Telegram/Steam/Apple/
- * Microsoft）、以及按地区自动分组（HK/TW/JP/SG/KR/US/EU/AU/AS）。
+ * Microsoft/Spotify/GitHub/Netflix/TikTok），以及完整地区自动分组
+ * （HK/TW/JP/SG/KR/US/CA/UK/EU/AU/AS）。
  *
  * ── Bettbox 可视化开关 ───────────────────────────────────────────
  * 本脚本首行的 Compatible_With_Bettbox 声明会被 Bettbox（v1.18.8+）
@@ -89,13 +92,17 @@ const BETTBOX = {
  *
  * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
  *
- * 仓库地址：https://github.com/wchiway/mihomo-proxy
- * 脚本链接：https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/bettbox-flclash.js
+ * 仓库地址：https://github.com/tns80/flclash-hybrid-rules
+ * Upstream: https://github.com/wchiway/mihomo-proxy
+ * 脚本链接：https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bettbox-flclash.js
  * 客户端：https://github.com/appshubcc/Bettbox | https://github.com/chen08209/FlClash
  */
 var ruleOptionsEnable = {
   Google: true,
   YouTube: true,
+  GitHub: true,
+  Netflix: true,
+  TikTok: true,
   AI: true,
   Telegram: true,
   Steam: true,
@@ -110,6 +117,9 @@ var ruleOptionsEnable = {
 var serviceConfigs = [
   { name: "Google", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png" },
   { name: "YouTube", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png" },
+  { name: "GitHub", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/GitHub.png" },
+  { name: "Netflix", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Netflix.png" },
+  { name: "TikTok", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/TikTok.png" },
   { name: "AI", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png" },
   { name: "Telegram", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Telegram.png" },
   { name: "Steam", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Steam.png" },
@@ -155,8 +165,9 @@ const FLCLASH = {
  *
  * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
  *
- * 仓库地址：https://github.com/wchiway/mihomo-proxy
- * 脚本链接：https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/flclash-mobile.js
+ * 仓库地址：https://github.com/tns80/flclash-hybrid-rules
+ * Upstream: https://github.com/wchiway/mihomo-proxy
+ * 脚本链接：https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/flclash-mobile.js
  * 客户端：https://github.com/chen08209/FlClash
  */`,
 };

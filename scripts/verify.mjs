@@ -755,6 +755,9 @@ assertCommon("bettbox", bettbox);
     "Apple",
     "Microsoft",
     "Spotify",
+    "GitHub",
+    "Netflix",
+    "TikTok",
     "广告拦截",
     "地区分组",
     "屏蔽QUIC",
@@ -776,6 +779,9 @@ assertCommon("bettbox", bettbox);
   const customOptions = {
     Google: false,
     YouTube: false,
+    GitHub: false,
+    Netflix: false,
+    TikTok: false,
     地区分组: false,
     屏蔽QUIC: false,
   };
@@ -790,6 +796,17 @@ assertCommon("bettbox", bettbox);
   `;
   const customResult = vm.runInNewContext(evaluateCustomCode);
   const customGroupNames = (customResult["proxy-groups"] ?? []).map((g) => g.name);
+
+  for (const [name, keys] of [
+    ["GitHub", ["github"]],
+    ["Netflix", ["netflix", "netflix-ip"]],
+    ["TikTok", ["tiktok"]],
+  ]) {
+    assert(!customGroupNames.includes(name), `[bettbox-custom] disabled ${name} group omitted`);
+    for (const key of keys) {
+      assert(customResult.rules.includes(`RULE-SET,${key},main${key.endsWith("-ip") ? ",no-resolve" : ""}`), `[bettbox-custom] ${key} falls back to main`);
+    }
+  }
 
   // Google 和 YouTube 策略组应被跳过不生成
   assert(

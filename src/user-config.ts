@@ -12,6 +12,9 @@ export const BYPASS_DOMAINS: string[] = [];
 export const FORCE_PROXY_DOMAINS: string[] = [];
 
 /** 需要从订阅中剔除的节点名过滤器（正则） */
+// 可选个人配置示例（替换下一行；默认不启用）：
+// export const CUSTOM_FILTER = /(?:日本|JAPAN|JP|🇯🇵).*?BGP\s*(?:10|[6-9])(?!\d)/i;
+// 排除日本 BGP6~10（允许空格），保留 BGP1~5；BGP100 不匹配。
 export const CUSTOM_FILTER = /示例占位符1|示例占位符2|示例占位符3/i;
 
 /**

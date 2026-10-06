@@ -89,7 +89,7 @@ export const applyDns = (cfg: ClashConfig): void => {
       "+.wegame.com.cn": DNS_SERVERS.CN_DOH,
 
       // 境外主流服务族群 → 国际纯净 DoH
-      "rule-set:google,googlefcm,youtube,gfw,telegram,spotify,category-ai,openai,anthropic,perplexity,cursor,notion,xai":
+      "rule-set:google,googlefcm,youtube,github,netflix,tiktok,gfw,telegram,spotify,category-ai,openai,anthropic,perplexity,cursor,notion,xai":
         DNS_SERVERS.GLOBAL_DOH,
 
       // 时间同步与系统连通性探测（直连解析，防止代理未建立时的启动死锁）

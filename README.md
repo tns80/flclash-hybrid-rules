@@ -1,4 +1,15 @@
-# mihomo-proxy
+# flclash-hybrid-rules
+
+项目仓库：[tns80/flclash-hybrid-rules](https://github.com/tns80/flclash-hybrid-rules)
+
+Upstream: [wchiway/mihomo-proxy](https://github.com/wchiway/mihomo-proxy)
+
+本项目基于原作者 wchiway 的 mihomo-proxy，保留原项目源码、测试体系和许可证（见 LICENSE）。
+
+FlClash Hybrid 脚本地址：
+https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bettbox-flclash.js
+
+后续更新可使用 git fetch upstream，并在人工审查后合并 upstream/main。
 
 mihomo（Clash Meta）配置增强脚本 · Ultimate Stable Edition v3.0
 
@@ -12,8 +23,8 @@ mihomo（Clash Meta）配置增强脚本 · Ultimate Stable Edition v3.0
 | -------------------- | ------------------------------------------------------------ | ---------------------------------- | ----------------------------------- | ---------------------------------------- |
 | 目标客户端           | Sparkle / Clash Verge Rev                                    | Sparkle / Clash Verge Rev          | **FlClash**（手机 / 极简用户）      | **Bettbox** / **FlClash**（全平台）      |
 | 策略组数量           | 20+（地区组 + 服务组）                                       | 3 个                               | 3 个                                | 20+（完整服务组 + 地区组）               |
-| 地区分组             | HK / TW / JP / SG / KR / US / EU / AU / AS + Other           | 无                                 | 无                                  | HK / TW / JP / SG / KR / US / EU / AU / AS + Other（可开关） |
-| 服务组               | Google / YouTube / AI / Telegram / Steam / Apple / Microsoft | 统一收敛到「全部」                 | 统一收敛到「全部」                  | Google / YouTube / AI / Telegram / Steam / Apple / Microsoft / Spotify（各可独立开关） |
+| 地区分组             | HK / TW / JP / SG / KR / US / EU / AU / AS + Other           | 无                                 | 无                                  | HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS + Other（可开关） |
+| 服务组               | Google / YouTube / AI / Telegram / Steam / Apple / Microsoft | 统一收敛到「全部」                 | 统一收敛到「全部」                  | Google / YouTube / GitHub / Netflix / TikTok / AI / Telegram / Steam / Apple / Microsoft / Spotify（各可独立开关） |
 | 节点纳入方式         | 脚本枚举节点名（可排序）                                     | 脚本枚举节点名（可排序）           | 内核 `include-all` 运行时纳入       | 内核 `include-all` 运行时纳入            |
 | proxy-providers 订阅 | 不支持（只读 `proxies`）                                     | 不支持                             | ✅ 支持                             | ✅ 支持                                  |
 | 订阅增删节点         | 需重新应用脚本                                               | 需重新应用脚本                     | ✅ 自动跟随                         | ✅ 自动跟随                              |
@@ -25,16 +36,16 @@ mihomo（Clash Meta）配置增强脚本 · Ultimate Stable Edition v3.0
 
 ```text
 # 完整版（桌面端）
-https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/mihomo-proxy.js
+https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/mihomo-proxy.js
 
 # 极简版（桌面端）
-https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/simple-mihomo.js
+https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/simple-mihomo.js
 
 # 手机版（FlClash 极简版）
-https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/flclash-mobile.js
+https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/flclash-mobile.js
 
 # Bettbox / FlClash 系列专属版（完整分流 + 地区分组 + 可视化开关）
-https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/bettbox-flclash.js
+https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bettbox-flclash.js
 ```
 
 ---
@@ -414,3 +425,18 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
 - MetaCubeX GeoSite / GeoIP 规则集（<https://github.com/MetaCubeX/meta-rules-dat>）
 - Koolson 图标资源库（<https://github.com/Koolson/Qure>）
 - LinuxDO 社区的经验与最佳实践
+
+
+## FlClash Hybrid 分支
+
+本分支基于 mihomo-proxy 的 Bettbox TypeScript 实现，仅参考 [Perfect-Rules](https://github.com/n0de-sudo/Perfect-Rules) 的独立服务/地区组产品能力。源码入口为 src/bettbox-main.ts；构建产物为 bettbox-flclash.js（pnpm build 自动生成，不手改）。
+
+- 新增 GitHub、Netflix、TikTok 三个 select 服务组，默认启用。候选为 main / All / 各地区 / Other；开关关闭时规则回退 main，无节点时生成合法 DIRECT fallback，GLOBAL 包含已启用服务。Bettbox 可视化开关在 ruleOptionsEnable 和 serviceConfigs 中同步提供。
+- 新增 CA、UK，顺序 HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS。CA 不使用裸 CA；英国匹配从 EU 移至 UK，Other 自动排除所有已识别地区。
+- GitHub / Netflix / TikTok 的 domain 和 Netflix 的 IP 规则使用 MetaCubeX meta-rules-dat .mrs、24h 更新和本地 rules 缓存；服务规则位于 Google / YouTube 后、Telegram 前，保留原有广告、自定义、基础设施、QUIC、AI 及兜底优先级。
+- 保留 include-all / filter / exclude-filter / empty-fallback / proxy-providers；订阅增删节点无需重新执行脚本，不枚举节点名。
+- DNS 保持 respect-rules=true、prefer-h3=false、Fake-IP、GLOBAL_DOH / CN_DOH 分流、proxy-server-nameserver、direct-nameserver 和 direct-nameserver-follow-policy。github / netflix / tiktok 加入国际 nameserver-policy。DNS hijack、Sniffer、广告和 Google QUIC 保留。
+- 共享 src/runtime.ts 中 strict-route=true；stack=mixed、auto-route / auto-detect-interface=true，dns-hijack 为 any:53 和 tcp://any:53，其他 TUN 参数保持原值。此共享改动应用于四个构建版本。
+- CUSTOM_FILTER 默认保持通用占位配置。src/user-config.ts 提供可选示例：`/(?:日本|JAPAN|JP|🇯🇵).*?BGP\s*(?:10|[6-9])(?!\d)/i`，排除日本 BGP6~10（数字前允许空格），保留 BGP1~5。需自行替换 CUSTOM_FILTER 后重新构建。
+
+验证：pnpm install、pnpm typecheck、pnpm test、pnpm build、pnpm verify、pnpm verify:kernel、pnpm verify:runtime。内核校验依赖可定位的 Mihomo（可设置 MIHOMO_BIN）；未找到内核的跳过输出应记录为 NOT_RUN，不作为 PASS。

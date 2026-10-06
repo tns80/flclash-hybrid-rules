@@ -46,6 +46,9 @@ export interface RuleTargets {
   ai: string;
   google: string;
   youtube: string;
+  github: string;
+  netflix: string;
+  tiktok: string;
   telegram: string;
   steam: string;
   apple: string;
@@ -100,6 +103,12 @@ export const buildStaticRules = (t: RuleTargets): string[] => [
   `RULE-SET,google,${t.google}`,
   `RULE-SET,google-ip,${t.google},no-resolve`,
   "RULE-SET,google-cn,DIRECT",
+
+  // Hybrid 独立业务服务
+  `RULE-SET,github,${t.github}`,
+  `RULE-SET,netflix,${t.netflix}`,
+  `RULE-SET,netflix-ip,${t.netflix},no-resolve`,
+  `RULE-SET,tiktok,${t.tiktok}`,
 
   // Telegram 通讯服务
   `RULE-SET,telegram,${t.telegram}`,

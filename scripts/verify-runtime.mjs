@@ -189,4 +189,12 @@ try {
   child.kill();
 }
 
+try {
+  const { verifyHybridRuntime } = await import("./verify-hybrid-runtime.mjs");
+  await verifyHybridRuntime(kernel, distDir);
+} catch (error) {
+  console.error(`✗ Hybrid runtime: ${error.stack || error}`);
+  failed = true;
+}
+
 process.exitCode = failed ? 1 : (process.exitCode ?? 0);

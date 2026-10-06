@@ -24,6 +24,9 @@ const GEOSITE_PROVIDERS: ProviderEntry[] = [
   { key: "google-cn", file: "google-cn" },
   { key: "googlefcm", file: "googlefcm" },
   { key: "youtube", file: "youtube" },
+  { key: "github", file: "github" },
+  { key: "netflix", file: "netflix" },
+  { key: "tiktok", file: "tiktok" },
   { key: "apple", file: "apple" },
   { key: "apple-cn", file: "apple-cn" },
   { key: "microsoft", file: "microsoft" },
@@ -53,6 +56,7 @@ const GEOIP_PROVIDERS: ProviderEntry[] = [
   { key: "private-ip", file: "private" },
   { key: "cn-ip", file: "cn" },
   { key: "google-ip", file: "google" },
+  { key: "netflix-ip", file: "netflix" },
   { key: "telegram-ip", file: "telegram" },
 ];
 

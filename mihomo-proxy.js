@@ -4,8 +4,9 @@
 * 面向 Sparkle / 最新 Mihomo(Clash.Meta) 内核的配置增强脚本。
 * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
 *
-* 仓库地址：https://github.com/wchiway/mihomo-proxy
-* 脚本链接：https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/mihomo-proxy.js
+* 仓库地址：https://github.com/tns80/flclash-hybrid-rules
+* Upstream: https://github.com/wchiway/mihomo-proxy
+* 脚本链接：https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/mihomo-proxy.js
 * 客户端推荐：https://github.com/xishang0128/sparkle
 * 提醒：使用系统代理时 fake-ip 不会生效，建议使用 TUN 模式。
 */
@@ -422,6 +423,18 @@ var __mihomoProxy = (function(exports) {
 			file: "youtube"
 		},
 		{
+			key: "github",
+			file: "github"
+		},
+		{
+			key: "netflix",
+			file: "netflix"
+		},
+		{
+			key: "tiktok",
+			file: "tiktok"
+		},
+		{
 			key: "apple",
 			file: "apple"
 		},
@@ -507,6 +520,10 @@ var __mihomoProxy = (function(exports) {
 		{
 			key: "google-ip",
 			file: "google"
+		},
+		{
+			key: "netflix-ip",
+			file: "netflix"
 		},
 		{
 			key: "telegram-ip",
@@ -598,6 +615,10 @@ var __mihomoProxy = (function(exports) {
 		`RULE-SET,google,${t.google}`,
 		`RULE-SET,google-ip,${t.google},no-resolve`,
 		"RULE-SET,google-cn,DIRECT",
+		`RULE-SET,github,${t.github}`,
+		`RULE-SET,netflix,${t.netflix}`,
+		`RULE-SET,netflix-ip,${t.netflix},no-resolve`,
+		`RULE-SET,tiktok,${t.tiktok}`,
 		`RULE-SET,telegram,${t.telegram}`,
 		`RULE-SET,telegram-ip,${t.telegram},no-resolve`,
 		"DOMAIN-SUFFIX,steamcontent.com,DIRECT",
@@ -880,7 +901,7 @@ var __mihomoProxy = (function(exports) {
 				"+.tencent.com": DNS_SERVERS.CN_DOH,
 				"+.qcloud.com": DNS_SERVERS.CN_DOH,
 				"+.wegame.com.cn": DNS_SERVERS.CN_DOH,
-				"rule-set:google,googlefcm,youtube,gfw,telegram,spotify,category-ai,openai,anthropic,perplexity,cursor,notion,xai": DNS_SERVERS.GLOBAL_DOH,
+				"rule-set:google,googlefcm,youtube,github,netflix,tiktok,gfw,telegram,spotify,category-ai,openai,anthropic,perplexity,cursor,notion,xai": DNS_SERVERS.GLOBAL_DOH,
 				"rule-set:category-ntp": ["system", ...DNS_SERVERS.CN_DOH],
 				"+.msftconnecttest.com": ["system", ...DNS_SERVERS.CN_DOH],
 				"+.msftncsi.com": ["system", ...DNS_SERVERS.CN_DOH],
@@ -961,7 +982,7 @@ var __mihomoProxy = (function(exports) {
 			stack: "mixed",
 			"auto-route": true,
 			"auto-detect-interface": true,
-			"strict-route": false,
+			"strict-route": true,
 			"endpoint-independent-nat": true,
 			"dns-hijack": ["any:53", "tcp://any:53"],
 			mtu: 1500,
@@ -975,6 +996,9 @@ var __mihomoProxy = (function(exports) {
 		ai: "AI",
 		google: "Google",
 		youtube: "YouTube",
+		github: "main",
+		netflix: "main",
+		tiktok: "main",
 		telegram: "Telegram",
 		steam: "Steam",
 		apple: "Apple",

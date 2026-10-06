@@ -28,6 +28,9 @@ import type { ClashConfig, Proxy, ProxyGroup } from "./types";
 export interface BettboxRuleOptions {
   Google: boolean;
   YouTube: boolean;
+  GitHub: boolean;
+  Netflix: boolean;
+  TikTok: boolean;
   AI: boolean;
   Telegram: boolean;
   Steam: boolean;
@@ -43,6 +46,9 @@ export interface BettboxRuleOptions {
 export const DEFAULT_RULE_OPTIONS: BettboxRuleOptions = {
   Google: true,
   YouTube: true,
+  GitHub: true,
+  Netflix: true,
+  TikTok: true,
   AI: true,
   Telegram: true,
   Steam: true,
@@ -95,6 +101,9 @@ const GROUPS = {
   AI: "AI",
   GOOGLE: "Google",
   YOUTUBE: "YouTube",
+  GITHUB: "GitHub",
+  NETFLIX: "Netflix",
+  TIKTOK: "TikTok",
   TELEGRAM: "Telegram",
   STEAM: "Steam",
   APPLE: "Apple",
@@ -159,9 +168,19 @@ const REGION_DEFS: RegionDef[] = [
     icon: "United_States.png",
   },
   {
+    name: "CA",
+    filter: "(?i)(?:加拿大|CANADA|TORONTO|VANCOUVER|MONTREAL|YYZ|YVR|🇨🇦)",
+    icon: "Canada.png",
+  },
+  {
+    name: "UK",
+    filter: "(?i)(?:英国|UNITED KINGDOM|ENGLAND|LONDON|MANCHESTER|\\bUK\\b|GBR|LHR|🇬🇧)",
+    icon: "United_Kingdom.png",
+  },
+  {
     name: "EU",
     filter:
-      "(?i)(?:欧洲|德国|法国|英国|荷兰|俄罗斯|意大利|西班牙|瑞典|瑞士|波兰|芬兰|土耳其|爱尔兰|奥地利|法兰克福|伦敦|EU|DE|FR|UK|GB|NL|RU|IT|ES|SE|CH|PL|FI|TR|IE|AT|GERMANY|FRANCE|LONDON|FRANKFURT|🇪🇺|🇩🇪|🇫🇷|🇬🇧|🇳🇱|🇷🇺|🇮🇹|🇪🇸|🇸🇪|🇨🇭|🇵🇱|🇫🇮|🇹🇷|🇮🇪|🇦🇹|🇧🇪)",
+      "(?i)(?:欧洲|德国|法国|荷兰|俄罗斯|意大利|西班牙|瑞典|瑞士|波兰|芬兰|土耳其|爱尔兰|奥地利|法兰克福|(?<![A-Z])(?:EU|DE|FR|NL|RU|IT|ES|SE|CH|PL|FI|TR|IE|AT)(?![A-Z])|GERMANY|FRANCE|FRANKFURT|🇪🇺|🇩🇪|🇫🇷|🇳🇱|🇷🇺|🇮🇹|🇪🇸|🇸🇪|🇨🇭|🇵🇱|🇫🇮|🇹🇷|🇮🇪|🇦🇹|🇧🇪)",
     icon: "European_Union.png",
   },
   {
@@ -178,7 +197,7 @@ const REGION_DEFS: RegionDef[] = [
   },
 ];
 
-/** 地区展示顺序（与 settings.ts REGION_ORDER 一致） */
+/** Bettbox / FlClash Hybrid 地区展示顺序 */
 const REGION_ORDER = [
   "HK",
   "TW",
@@ -186,6 +205,8 @@ const REGION_ORDER = [
   "SG",
   "KR",
   "US",
+  "CA",
+  "UK",
   "EU",
   "AU",
   "AS",
@@ -258,6 +279,9 @@ const buildRuleTargets = (options: BettboxRuleOptions): RuleTargets => ({
   ai: options.AI ? GROUPS.AI : GROUPS.MAIN,
   google: options.Google ? GROUPS.GOOGLE : GROUPS.MAIN,
   youtube: options.YouTube ? GROUPS.YOUTUBE : GROUPS.MAIN,
+  github: options.GitHub ? GROUPS.GITHUB : GROUPS.MAIN,
+  netflix: options.Netflix ? GROUPS.NETFLIX : GROUPS.MAIN,
+  tiktok: options.TikTok ? GROUPS.TIKTOK : GROUPS.MAIN,
   telegram: options.Telegram ? GROUPS.TELEGRAM : GROUPS.MAIN,
   steam: options.Steam ? GROUPS.STEAM : GROUPS.MAIN,
   apple: options.Apple ? GROUPS.APPLE : GROUPS.MAIN,
@@ -305,6 +329,13 @@ const buildBettboxProxyGroups = (
       fallback.push({ name: GROUPS.GOOGLE, type: "select", proxies: [GROUPS.MAIN], icon: icon("Google_Search.png") });
     if (options.YouTube)
       fallback.push({ name: GROUPS.YOUTUBE, type: "select", proxies: [GROUPS.MAIN], icon: icon("YouTube.png") });
+    for (const [enabled, name, image] of [
+      [options.GitHub, GROUPS.GITHUB, "GitHub.png"],
+      [options.Netflix, GROUPS.NETFLIX, "Netflix.png"],
+      [options.TikTok, GROUPS.TIKTOK, "TikTok.png"],
+    ] as const) {
+      if (enabled) fallback.push({ name, type: "select", proxies: [GROUPS.MAIN], icon: icon(image) });
+    }
     if (options.Telegram)
       fallback.push({ name: GROUPS.TELEGRAM, type: "select", proxies: [GROUPS.MAIN], icon: icon("Telegram.png") });
     if (options.Steam)
@@ -317,7 +348,7 @@ const buildBettboxProxyGroups = (
       fallback.push({ name: GROUPS.SPOTIFY, type: "select", proxies: [GROUPS.MAIN], icon: icon("Spotify.png") });
     if (options.广告拦截)
       fallback.push({ name: GROUPS.ADBLOCK, type: "select", proxies: ["REJECT", "DIRECT", GROUPS.MAIN], icon: icon("AdBlack.png") });
-    fallback.push({ name: GROUPS.GLOBAL, type: "select", proxies: [GROUPS.MAIN, "DIRECT"], icon: icon("Global.png") });
+    fallback.push({ name: GROUPS.GLOBAL, type: "select", proxies: [...fallback.map((g) => g.name), "DIRECT"], icon: icon("Global.png") });
     return fallback;
   }
 
@@ -517,6 +548,15 @@ const buildBettboxProxyGroups = (
     });
   }
 
+  // Hybrid 服务：用户手动选择主入口或地区，节点由 include-all 动态纳入。
+  for (const [enabled, name, image] of [
+    [options.GitHub, GROUPS.GITHUB, "GitHub.png"],
+    [options.Netflix, GROUPS.NETFLIX, "Netflix.png"],
+    [options.TikTok, GROUPS.TIKTOK, "TikTok.png"],
+  ] as const) {
+    if (enabled) groups.push({ name, type: "select", proxies: serviceProxies, icon: icon(image) });
+  }
+
   // Telegram（首选新加坡，fallback 到 main）
   if (options.Telegram) {
     const hasSG = regionNames.includes("SG");
@@ -601,6 +641,9 @@ const buildBettboxProxyGroups = (
       ...(options.AI ? [GROUPS.AI] : []),
       ...(options.Google ? [GROUPS.GOOGLE] : []),
       ...(options.YouTube ? [GROUPS.YOUTUBE] : []),
+      ...(options.GitHub ? [GROUPS.GITHUB] : []),
+      ...(options.Netflix ? [GROUPS.NETFLIX] : []),
+      ...(options.TikTok ? [GROUPS.TIKTOK] : []),
       ...(options.Telegram ? [GROUPS.TELEGRAM] : []),
       ...(options.Steam ? [GROUPS.STEAM] : []),
       ...(options.Apple ? [GROUPS.APPLE] : []),

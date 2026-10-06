@@ -1,11 +1,12 @@
 const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 /**
-* bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.0
+* bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.0 Hybrid
 * ------------------------------------------------------------------
 * 面向 Bettbox 与 FlClash 系列客户端的完整分流覆写脚本。
 * 集成 Compatible_With_Bettbox 可视化开关适配、include-all 运行时
 * 节点纳入、完整分流策略组（Google/YouTube/AI/Telegram/Steam/Apple/
-* Microsoft）、以及按地区自动分组（HK/TW/JP/SG/KR/US/EU/AU/AS）。
+* Microsoft/Spotify/GitHub/Netflix/TikTok），以及完整地区自动分组
+* （HK/TW/JP/SG/KR/US/CA/UK/EU/AU/AS）。
 *
 * ── Bettbox 可视化开关 ───────────────────────────────────────────
 * 本脚本首行的 Compatible_With_Bettbox 声明会被 Bettbox（v1.18.8+）
@@ -24,13 +25,17 @@ const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 *
 * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
 *
-* 仓库地址：https://github.com/wchiway/mihomo-proxy
-* 脚本链接：https://raw.githubusercontent.com/wchiway/mihomo-proxy/refs/heads/main/bettbox-flclash.js
+* 仓库地址：https://github.com/tns80/flclash-hybrid-rules
+* Upstream: https://github.com/wchiway/mihomo-proxy
+* 脚本链接：https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bettbox-flclash.js
 * 客户端：https://github.com/appshubcc/Bettbox | https://github.com/chen08209/FlClash
 */
 var ruleOptionsEnable = {
 	Google: true,
 	YouTube: true,
+	GitHub: true,
+	Netflix: true,
+	TikTok: true,
 	AI: true,
 	Telegram: true,
 	Steam: true,
@@ -49,6 +54,18 @@ var serviceConfigs = [
 	{
 		name: "YouTube",
 		icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png"
+	},
+	{
+		name: "GitHub",
+		icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/GitHub.png"
+	},
+	{
+		name: "Netflix",
+		icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Netflix.png"
+	},
+	{
+		name: "TikTok",
+		icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/TikTok.png"
 	},
 	{
 		name: "AI",
@@ -231,6 +248,18 @@ var __mihomoBettbox = (function(exports) {
 			file: "youtube"
 		},
 		{
+			key: "github",
+			file: "github"
+		},
+		{
+			key: "netflix",
+			file: "netflix"
+		},
+		{
+			key: "tiktok",
+			file: "tiktok"
+		},
+		{
 			key: "apple",
 			file: "apple"
 		},
@@ -316,6 +345,10 @@ var __mihomoBettbox = (function(exports) {
 		{
 			key: "google-ip",
 			file: "google"
+		},
+		{
+			key: "netflix-ip",
+			file: "netflix"
 		},
 		{
 			key: "telegram-ip",
@@ -416,6 +449,10 @@ var __mihomoBettbox = (function(exports) {
 		`RULE-SET,google,${t.google}`,
 		`RULE-SET,google-ip,${t.google},no-resolve`,
 		"RULE-SET,google-cn,DIRECT",
+		`RULE-SET,github,${t.github}`,
+		`RULE-SET,netflix,${t.netflix}`,
+		`RULE-SET,netflix-ip,${t.netflix},no-resolve`,
+		`RULE-SET,tiktok,${t.tiktok}`,
 		`RULE-SET,telegram,${t.telegram}`,
 		`RULE-SET,telegram-ip,${t.telegram},no-resolve`,
 		"DOMAIN-SUFFIX,steamcontent.com,DIRECT",
@@ -515,7 +552,7 @@ var __mihomoBettbox = (function(exports) {
 				"+.tencent.com": DNS_SERVERS.CN_DOH,
 				"+.qcloud.com": DNS_SERVERS.CN_DOH,
 				"+.wegame.com.cn": DNS_SERVERS.CN_DOH,
-				"rule-set:google,googlefcm,youtube,gfw,telegram,spotify,category-ai,openai,anthropic,perplexity,cursor,notion,xai": DNS_SERVERS.GLOBAL_DOH,
+				"rule-set:google,googlefcm,youtube,github,netflix,tiktok,gfw,telegram,spotify,category-ai,openai,anthropic,perplexity,cursor,notion,xai": DNS_SERVERS.GLOBAL_DOH,
 				"rule-set:category-ntp": ["system", ...DNS_SERVERS.CN_DOH],
 				"+.msftconnecttest.com": ["system", ...DNS_SERVERS.CN_DOH],
 				"+.msftncsi.com": ["system", ...DNS_SERVERS.CN_DOH],
@@ -596,7 +633,7 @@ var __mihomoBettbox = (function(exports) {
 			stack: "mixed",
 			"auto-route": true,
 			"auto-detect-interface": true,
-			"strict-route": false,
+			"strict-route": true,
 			"endpoint-independent-nat": true,
 			"dns-hijack": ["any:53", "tcp://any:53"],
 			mtu: 1500,
@@ -631,6 +668,9 @@ var __mihomoBettbox = (function(exports) {
 	var DEFAULT_RULE_OPTIONS = {
 		Google: true,
 		YouTube: true,
+		GitHub: true,
+		Netflix: true,
+		TikTok: true,
 		AI: true,
 		Telegram: true,
 		Steam: true,
@@ -666,6 +706,9 @@ var __mihomoBettbox = (function(exports) {
 		AI: "AI",
 		GOOGLE: "Google",
 		YOUTUBE: "YouTube",
+		GITHUB: "GitHub",
+		NETFLIX: "Netflix",
+		TIKTOK: "TikTok",
 		TELEGRAM: "Telegram",
 		STEAM: "Steam",
 		APPLE: "Apple",
@@ -713,8 +756,18 @@ var __mihomoBettbox = (function(exports) {
 			icon: "United_States.png"
 		},
 		{
+			name: "CA",
+			filter: "(?i)(?:加拿大|CANADA|TORONTO|VANCOUVER|MONTREAL|YYZ|YVR|🇨🇦)",
+			icon: "Canada.png"
+		},
+		{
+			name: "UK",
+			filter: "(?i)(?:英国|UNITED KINGDOM|ENGLAND|LONDON|MANCHESTER|\\bUK\\b|GBR|LHR|🇬🇧)",
+			icon: "United_Kingdom.png"
+		},
+		{
 			name: "EU",
-			filter: "(?i)(?:欧洲|德国|法国|英国|荷兰|俄罗斯|意大利|西班牙|瑞典|瑞士|波兰|芬兰|土耳其|爱尔兰|奥地利|法兰克福|伦敦|EU|DE|FR|UK|GB|NL|RU|IT|ES|SE|CH|PL|FI|TR|IE|AT|GERMANY|FRANCE|LONDON|FRANKFURT|🇪🇺|🇩🇪|🇫🇷|🇬🇧|🇳🇱|🇷🇺|🇮🇹|🇪🇸|🇸🇪|🇨🇭|🇵🇱|🇫🇮|🇹🇷|🇮🇪|🇦🇹|🇧🇪)",
+			filter: "(?i)(?:欧洲|德国|法国|荷兰|俄罗斯|意大利|西班牙|瑞典|瑞士|波兰|芬兰|土耳其|爱尔兰|奥地利|法兰克福|(?<![A-Z])(?:EU|DE|FR|NL|RU|IT|ES|SE|CH|PL|FI|TR|IE|AT)(?![A-Z])|GERMANY|FRANCE|FRANKFURT|🇪🇺|🇩🇪|🇫🇷|🇳🇱|🇷🇺|🇮🇹|🇪🇸|🇸🇪|🇨🇭|🇵🇱|🇫🇮|🇹🇷|🇮🇪|🇦🇹|🇧🇪)",
 			icon: "European_Union.png"
 		},
 		{
@@ -728,7 +781,7 @@ var __mihomoBettbox = (function(exports) {
 			icon: "Asia_Map.png"
 		}
 	];
-	/** 地区展示顺序（与 settings.ts REGION_ORDER 一致） */
+	/** Bettbox / FlClash Hybrid 地区展示顺序 */
 	var REGION_ORDER = [
 		"HK",
 		"TW",
@@ -736,6 +789,8 @@ var __mihomoBettbox = (function(exports) {
 		"SG",
 		"KR",
 		"US",
+		"CA",
+		"UK",
 		"EU",
 		"AU",
 		"AS"
@@ -790,6 +845,9 @@ var __mihomoBettbox = (function(exports) {
 		ai: options.AI ? GROUPS.AI : GROUPS.MAIN,
 		google: options.Google ? GROUPS.GOOGLE : GROUPS.MAIN,
 		youtube: options.YouTube ? GROUPS.YOUTUBE : GROUPS.MAIN,
+		github: options.GitHub ? GROUPS.GITHUB : GROUPS.MAIN,
+		netflix: options.Netflix ? GROUPS.NETFLIX : GROUPS.MAIN,
+		tiktok: options.TikTok ? GROUPS.TIKTOK : GROUPS.MAIN,
 		telegram: options.Telegram ? GROUPS.TELEGRAM : GROUPS.MAIN,
 		steam: options.Steam ? GROUPS.STEAM : GROUPS.MAIN,
 		apple: options.Apple ? GROUPS.APPLE : GROUPS.MAIN,
@@ -841,6 +899,28 @@ var __mihomoBettbox = (function(exports) {
 				proxies: [GROUPS.MAIN],
 				icon: icon("YouTube.png")
 			});
+			for (const [enabled, name, image] of [
+				[
+					options.GitHub,
+					GROUPS.GITHUB,
+					"GitHub.png"
+				],
+				[
+					options.Netflix,
+					GROUPS.NETFLIX,
+					"Netflix.png"
+				],
+				[
+					options.TikTok,
+					GROUPS.TIKTOK,
+					"TikTok.png"
+				]
+			]) if (enabled) fallback.push({
+				name,
+				type: "select",
+				proxies: [GROUPS.MAIN],
+				icon: icon(image)
+			});
 			if (options.Telegram) fallback.push({
 				name: GROUPS.TELEGRAM,
 				type: "select",
@@ -884,7 +964,7 @@ var __mihomoBettbox = (function(exports) {
 			fallback.push({
 				name: GROUPS.GLOBAL,
 				type: "select",
-				proxies: [GROUPS.MAIN, "DIRECT"],
+				proxies: [...fallback.map((g) => g.name), "DIRECT"],
 				icon: icon("Global.png")
 			});
 			return fallback;
@@ -1011,6 +1091,28 @@ var __mihomoBettbox = (function(exports) {
 				icon: icon("YouTube.png")
 			});
 		}
+		for (const [enabled, name, image] of [
+			[
+				options.GitHub,
+				GROUPS.GITHUB,
+				"GitHub.png"
+			],
+			[
+				options.Netflix,
+				GROUPS.NETFLIX,
+				"Netflix.png"
+			],
+			[
+				options.TikTok,
+				GROUPS.TIKTOK,
+				"TikTok.png"
+			]
+		]) if (enabled) groups.push({
+			name,
+			type: "select",
+			proxies: serviceProxies,
+			icon: icon(image)
+		});
 		if (options.Telegram) {
 			const hasSG = regionNames.includes("SG");
 			if (hasSG) groups.push({
@@ -1071,6 +1173,9 @@ var __mihomoBettbox = (function(exports) {
 				...options.AI ? [GROUPS.AI] : [],
 				...options.Google ? [GROUPS.GOOGLE] : [],
 				...options.YouTube ? [GROUPS.YOUTUBE] : [],
+				...options.GitHub ? [GROUPS.GITHUB] : [],
+				...options.Netflix ? [GROUPS.NETFLIX] : [],
+				...options.TikTok ? [GROUPS.TIKTOK] : [],
 				...options.Telegram ? [GROUPS.TELEGRAM] : [],
 				...options.Steam ? [GROUPS.STEAM] : [],
 				...options.Apple ? [GROUPS.APPLE] : [],

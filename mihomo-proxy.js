@@ -1,5 +1,5 @@
 /**
-* mihomo-proxy — Ultimate Stable Edition v3.0
+* mihomo-proxy — Ultimate Stable Edition v3.2 Hybrid
 * ------------------------------------------------------------------
 * 面向 Sparkle / 最新 Mihomo(Clash.Meta) 内核的配置增强脚本。
 * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。

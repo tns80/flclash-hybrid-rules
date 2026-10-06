@@ -11,7 +11,7 @@ https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bet
 
 后续更新可使用 git fetch upstream，并在人工审查后合并 upstream/main。
 
-mihomo（Clash Meta）配置增强脚本 · Ultimate Stable Edition v3.0
+mihomo（Clash Meta）配置增强脚本 · v3.2 Hybrid
 
 在 Sparkle / Clash Verge Rev（电脑）或 FlClash（手机）中作为**覆写脚本**加载，自动完成节点分组、服务级分流、DNS 防泄露分流与 TUN/Sniffer 网络优化。主要面向国内复杂网络（含校园网）与多地区机场订阅，目标是 Google 全家桶 / AI / 流媒体的高稳定性与零 DNS 泄露。
 
@@ -19,12 +19,12 @@ mihomo（Clash Meta）配置增强脚本 · Ultimate Stable Edition v3.0
 
 ## 四个版本，按需选择
 
-|                      | mihomo-proxy.js（完整版）                                    | simple-mihomo.js（极简版）         | flclash-mobile.js（FlClash 极简版） | bettbox-flclash.js（Bettbox 专属完整版） |
+|                      | mihomo-proxy.js（完整版）                                    | simple-mihomo.js（极简版）         | flclash-mobile.js（FlClash 极简版） | bettbox-flclash.js（Bettbox / FlClash Hybrid） |
 | -------------------- | ------------------------------------------------------------ | ---------------------------------- | ----------------------------------- | ---------------------------------------- |
 | 目标客户端           | Sparkle / Clash Verge Rev                                    | Sparkle / Clash Verge Rev          | **FlClash**（手机 / 极简用户）      | **Bettbox** / **FlClash**（全平台）      |
 | 策略组数量           | 20+（地区组 + 服务组）                                       | 3 个                               | 3 个                                | 20+（完整服务组 + 地区组）               |
 | 地区分组             | HK / TW / JP / SG / KR / US / EU / AU / AS + Other           | 无                                 | 无                                  | HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS + Other（可开关） |
-| 服务组               | Google / YouTube / AI / Telegram / Steam / Apple / Microsoft | 统一收敛到「全部」                 | 统一收敛到「全部」                  | Google / YouTube / GitHub / Netflix / TikTok / AI / Telegram / Steam / Apple / Microsoft / Spotify（各可独立开关） |
+| 服务组               | Google / YouTube / AI / Telegram / Steam / Apple / Microsoft | 统一收敛到「全部」                 | 统一收敛到「全部」                  | Google / YouTube / GitHub / Netflix / TikTok / AI / Telegram / Steam / Apple / Microsoft / Spotify / 广告拦截（各可独立开关） |
 | 节点纳入方式         | 脚本枚举节点名（可排序）                                     | 脚本枚举节点名（可排序）           | 内核 `include-all` 运行时纳入       | 内核 `include-all` 运行时纳入            |
 | proxy-providers 订阅 | 不支持（只读 `proxies`）                                     | 不支持                             | ✅ 支持                             | ✅ 支持                                  |
 | 订阅增删节点         | 需重新应用脚本                                               | 需重新应用脚本                     | ✅ 自动跟随                         | ✅ 自动跟随                              |
@@ -54,7 +54,7 @@ https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bet
 
 ### 1. 节点自动分类与排序
 
-- 地区识别：中英文名 / 缩写 / 国旗 emoji 均可识别，含 EU（欧洲）与 AU（澳洲）
+- 地区识别：中英文名 / 缩写 / 国旗 emoji 均可识别；Hybrid 地区组为 HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS / Other
 - 线路识别：IEPL / IPLC / BGP / 游戏 / 家宽（住宅）
 - 倍率识别：`0.2x`、`1倍`、`2X` 等计费倍率
 - 组内自动排序：专线优先 → 低倍率优先 → 名称序
@@ -84,11 +84,11 @@ https://raw.githubusercontent.com/tns80/flclash-hybrid-rules/refs/heads/main/bet
 生成的配置里不含成百上千行节点名，手机上加载更快。测速间隔放宽到 600s、
 容差 80ms，降低后台唤醒频率与移动网络抖动导致的频繁切换。
 
-Bettbox / FlClash 系列专属版（`bettbox-flclash.js`）：
+Bettbox / FlClash v3.2 Hybrid（`bettbox-flclash.js`）：
 
 兼具桌面完整版的丰富策略组与移动端的轻量动态架构：
-- **完整策略组体系**：`main`（主入口）/ `All` / `GLOBAL` / `AI`（排除香港）/ `Google` / `YouTube` / `Telegram` / `Steam` / `Apple` / `Microsoft` / `Spotify` / `广告拦截`
-- **地区自动分组**：HK / TW / JP / SG / KR / US / EU / AU / AS 与 `Other`（非地区节点），每组包含专属隐藏自动测速与手动选择
+- **完整策略组体系**：`main`（主入口）/ `All` / `GLOBAL`，服务组为 `Google` / `YouTube` / `GitHub` / `Netflix` / `TikTok` / `AI`（排除香港）/ `Telegram` / `Steam` / `Apple` / `Microsoft` / `Spotify` / `广告拦截`
+- **地区自动分组**：HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS / `Other`（非地区节点），每组包含专属隐藏自动测速与手动选择
 - **节点动态纳入**：采用 `include-all: true` + 地区 `filter` 与通用 `exclude-filter`，订阅更新或节点变动无需重新应用脚本，全面兼容 `proxy-providers` 订阅
 - **Bettbox 可视化开关原生适配**：脚本首行声明 `const Compatible_With_Bettbox = { ruleOptionsEnable: true };`，在 Bettbox（v1.18.8+）客户端覆写面板中直接呈现可视化开关，用户无需改动代码即可一键启闭任意服务分流组或地区分组（关闭的服务流量自动平滑回流至 `main` 组）
 
@@ -98,9 +98,9 @@ Bettbox / FlClash 系列专属版（`bettbox-flclash.js`）：
 - `respect-rules: true`：DNS 出口遵循分流规则
 - 防泄露三级白名单（`nameserver-policy` 按序匹配）：
   1. 内网/私有域名 → 系统 DNS 优先（兼容校园网内网）
-  2. 需翻墙域名族（Google / YouTube / AI / GFW / Telegram / Spotify）→ 国际 DoH
+  2. 需翻墙域名族（Google / YouTube / GitHub / Netflix / TikTok / AI / GFW / Telegram / Spotify）→ 国际 DoH
   3. 国内域名族（cn / apple-cn / google-cn / microsoft-cn / steam-cn）→ 国内 DoH（AliDNS / DNSPod）
-- **默认上游 = 国际 DoH（1.1.1.1 / 8.8.8.8，IP 直连形式）且经代理出站**——
+- **默认上游 = 国际 DoH（Cloudflare 1.1.1.1 + Quad9 9.9.9.9，IP 地址形式）且经代理出站**——
   境外域名（含浏览器 TYPE65 查询）绝不落到国内解析商，这是防泄露核心
 - `proxy-server-nameserver` = 国内加密 DoH：直连状态必然可达且防污染，节点域名始终可解析
 - `ipv6: false`：关闭 AAAA 解析，规避国内 IPv6 链路不稳定导致的查询超时卡顿
@@ -109,6 +109,7 @@ Bettbox / FlClash 系列专属版（`bettbox-flclash.js`）：
 ### 4. 分流规则要点
 
 - Google FCM 走代理（防推送断流）
+- Hybrid 的 GitHub、Netflix（domain + IP）、TikTok 各有独立策略组，默认启用；关闭后回退 main
 - **全球 `google` 优先于 `google-cn` 匹配**：google-cn 列表混有
   connectivitycheck.gstatic.com / fonts.googleapis.com 等全球关键域名（其国内 CDN 已失效），
   先代理后直连可避免 YouTube「未联网」、Chrome 商店卡死、页面白屏
@@ -121,7 +122,7 @@ Bettbox / FlClash 系列专属版（`bettbox-flclash.js`）：
 
 ### 5. 网络增强
 
-- TUN：mixed 栈 / strict-route 关闭（降低全流量接管的性能开销）/ endpoint-independent-nat / dns-hijack / MTU 1500
+- TUN：mixed 栈 / strict-route = true（严格接管 TUN 路由）/ endpoint-independent-nat / dns-hijack / MTU 1500
 - Runtime：tcp-concurrent / unified-delay / store-selected / log-level warning
 - Sniffer：HTTP + TLS + QUIC(HTTP/3)，全局关闭 override-destination 保护 FCM 长连接
 
@@ -299,6 +300,17 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
 
 ## 更新日志
 
+### v3.2 Hybrid（2026-10）
+
+- GitHub 独立策略组。
+- Netflix domain + IP 独立策略组。
+- TikTok 独立策略组。
+- 新增 CA 地区组、UK 地区组；UK 从 EU 独立，Other 自动排除已识别地区。
+- `strict-route = true`，保留现有 mixed 栈和 DNS hijack。
+- github / netflix / tiktok 纳入 GLOBAL_DOH policy；国际 DoH 为 Cloudflare 1.1.1.1 + Quad9 9.9.9.9。
+- 保留 include-all / proxy-providers 动态节点架构，订阅增删节点无需重新执行脚本。
+- 本次发布对齐文档、banner 和版本元信息，不改变现有网络运行逻辑。
+
 ### v3.1（2026-09）
 
 - **新增 Bettbox / FlClash 系列专属版 `bettbox-flclash.js`**：
@@ -427,16 +439,16 @@ pnpm verify:runtime # 启动内核查 API，验 include-all / exclude-filter 实
 - LinuxDO 社区的经验与最佳实践
 
 
-## FlClash Hybrid 分支
+## FlClash v3.2 Hybrid 分支
 
 本分支基于 mihomo-proxy 的 Bettbox TypeScript 实现，仅参考 [Perfect-Rules](https://github.com/n0de-sudo/Perfect-Rules) 的独立服务/地区组产品能力。源码入口为 src/bettbox-main.ts；构建产物为 bettbox-flclash.js（pnpm build 自动生成，不手改）。
 
 - 新增 GitHub、Netflix、TikTok 三个 select 服务组，默认启用。候选为 main / All / 各地区 / Other；开关关闭时规则回退 main，无节点时生成合法 DIRECT fallback，GLOBAL 包含已启用服务。Bettbox 可视化开关在 ruleOptionsEnable 和 serviceConfigs 中同步提供。
-- 新增 CA、UK，顺序 HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS。CA 不使用裸 CA；英国匹配从 EU 移至 UK，Other 自动排除所有已识别地区。
+- 新增 CA、UK，顺序 HK / TW / JP / SG / KR / US / CA / UK / EU / AU / AS / Other。CA 不使用裸 CA；英国匹配从 EU 移至 UK，Other 自动排除所有已识别地区。
 - GitHub / Netflix / TikTok 的 domain 和 Netflix 的 IP 规则使用 MetaCubeX meta-rules-dat .mrs、24h 更新和本地 rules 缓存；服务规则位于 Google / YouTube 后、Telegram 前，保留原有广告、自定义、基础设施、QUIC、AI 及兜底优先级。
 - 保留 include-all / filter / exclude-filter / empty-fallback / proxy-providers；订阅增删节点无需重新执行脚本，不枚举节点名。
-- DNS 保持 respect-rules=true、prefer-h3=false、Fake-IP、GLOBAL_DOH / CN_DOH 分流、proxy-server-nameserver、direct-nameserver 和 direct-nameserver-follow-policy。github / netflix / tiktok 加入国际 nameserver-policy。DNS hijack、Sniffer、广告和 Google QUIC 保留。
-- 共享 src/runtime.ts 中 strict-route=true；stack=mixed、auto-route / auto-detect-interface=true，dns-hijack 为 any:53 和 tcp://any:53，其他 TUN 参数保持原值。此共享改动应用于四个构建版本。
+- DNS 保持 respect-rules=true、prefer-h3=false、Fake-IP、GLOBAL_DOH（Cloudflare 1.1.1.1 + Quad9 9.9.9.9）/ CN_DOH 分流、proxy-server-nameserver、direct-nameserver 和 direct-nameserver-follow-policy。github / netflix / tiktok 加入国际 nameserver-policy。DNS hijack、Sniffer、广告和 Google QUIC 保留。
+- 共享 src/runtime.ts 中 strict-route = true；stack=mixed、auto-route / auto-detect-interface=true，dns-hijack 为 any:53 和 tcp://any:53，其他 TUN 参数保持原值。此共享改动应用于四个构建版本。
 - CUSTOM_FILTER 默认保持通用占位配置。src/user-config.ts 提供可选示例：`/(?:日本|JAPAN|JP|🇯🇵).*?BGP\s*(?:10|[6-9])(?!\d)/i`，排除日本 BGP6~10（数字前允许空格），保留 BGP1~5。需自行替换 CUSTOM_FILTER 后重新构建。
 
 验证：pnpm install、pnpm typecheck、pnpm test、pnpm build、pnpm verify、pnpm verify:kernel、pnpm verify:runtime。内核校验依赖可定位的 Mihomo（可设置 MIHOMO_BIN）；未找到内核的跳过输出应记录为 NOT_RUN，不作为 PASS。

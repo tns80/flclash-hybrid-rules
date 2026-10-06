@@ -1,12 +1,13 @@
 const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 /**
-* bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.0 Hybrid
+* bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2 Hybrid
 * ------------------------------------------------------------------
 * 面向 Bettbox 与 FlClash 系列客户端的完整分流覆写脚本。
 * 集成 Compatible_With_Bettbox 可视化开关适配、include-all 运行时
-* 节点纳入、完整分流策略组（Google/YouTube/AI/Telegram/Steam/Apple/
-* Microsoft/Spotify/GitHub/Netflix/TikTok），以及完整地区自动分组
-* （HK/TW/JP/SG/KR/US/CA/UK/EU/AU/AS）。
+* 节点纳入、完整分流策略组（Google/YouTube/GitHub/Netflix/TikTok/AI/
+* Telegram/Steam/Apple/Microsoft/Spotify/广告拦截），以及完整地区自动分组
+* （HK/TW/JP/SG/KR/US/CA/UK/EU/AU/AS/Other）。
+* 当前 TUN strict-route = true；GLOBAL_DOH 为 Cloudflare 1.1.1.1 + Quad9 9.9.9.9。
 *
 * ── Bettbox 可视化开关 ───────────────────────────────────────────
 * 本脚本首行的 Compatible_With_Bettbox 声明会被 Bettbox（v1.18.8+）

@@ -23,7 +23,7 @@ const FULL = {
   name: "__mihomoProxy",
   fileName: "mihomo-proxy.js",
   banner: `/**
- * mihomo-proxy — Ultimate Stable Edition v3.0
+ * mihomo-proxy — Ultimate Stable Edition v3.2 Hybrid
  * ------------------------------------------------------------------
  * 面向 Sparkle / 最新 Mihomo(Clash.Meta) 内核的配置增强脚本。
  * 本文件由 vite build 自动生成，请勿手改；源码见 src/ 目录。
@@ -41,7 +41,7 @@ const SIMPLE = {
   name: "__mihomoSimple",
   fileName: "simple-mihomo.js",
   banner: `/**
- * simple-mihomo — 极简业务分流版 v3.0
+ * simple-mihomo — 极简业务分流版 v3.2 Hybrid
  * ------------------------------------------------------------------
  * mihomo-proxy.js 的极简姊妹版：保留全部业务分流与 DNS/TUN 优化，
  * 但策略组只有三个，节点不做地区分组，简洁好理解：
@@ -67,13 +67,14 @@ const BETTBOX = {
   fileName: "bettbox-flclash.js",
   banner: `const Compatible_With_Bettbox = { ruleOptionsEnable: true };
 /**
- * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.0 Hybrid
+ * bettbox-flclash — Bettbox / FlClash 系列专属覆写脚本 v3.2 Hybrid
  * ------------------------------------------------------------------
  * 面向 Bettbox 与 FlClash 系列客户端的完整分流覆写脚本。
  * 集成 Compatible_With_Bettbox 可视化开关适配、include-all 运行时
- * 节点纳入、完整分流策略组（Google/YouTube/AI/Telegram/Steam/Apple/
- * Microsoft/Spotify/GitHub/Netflix/TikTok），以及完整地区自动分组
- * （HK/TW/JP/SG/KR/US/CA/UK/EU/AU/AS）。
+ * 节点纳入、完整分流策略组（Google/YouTube/GitHub/Netflix/TikTok/AI/
+ * Telegram/Steam/Apple/Microsoft/Spotify/广告拦截），以及完整地区自动分组
+ * （HK/TW/JP/SG/KR/US/CA/UK/EU/AU/AS/Other）。
+ * 当前 TUN strict-route = true；GLOBAL_DOH 为 Cloudflare 1.1.1.1 + Quad9 9.9.9.9。
  *
  * ── Bettbox 可视化开关 ───────────────────────────────────────────
  * 本脚本首行的 Compatible_With_Bettbox 声明会被 Bettbox（v1.18.8+）
@@ -137,7 +138,7 @@ const FLCLASH = {
   name: "__mihomoFlClash",
   fileName: "flclash-mobile.js",
   banner: `/**
- * flclash-mobile — FlClash（手机端）覆写脚本 v3.0
+ * flclash-mobile — FlClash（手机端）覆写脚本 v3.2 Hybrid
  * ------------------------------------------------------------------
  * 与 simple-mihomo 同样的三个策略组、同一套业务分流 / DNS 防泄露 /
  * Sniffer 源码，但节点改由内核 include-all + 正则过滤在运行时纳入：

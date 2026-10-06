@@ -1,5 +1,5 @@
 /**
-* flclash-mobile — FlClash（手机端）覆写脚本 v3.0
+* flclash-mobile — FlClash（手机端）覆写脚本 v3.2 Hybrid
 * ------------------------------------------------------------------
 * 与 simple-mihomo 同样的三个策略组、同一套业务分流 / DNS 防泄露 /
 * Sniffer 源码，但节点改由内核 include-all + 正则过滤在运行时纳入：
